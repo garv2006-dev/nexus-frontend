@@ -8,7 +8,7 @@ export default function OutOfCreditsBanner({ detail }) {
     <AnimatePresence>
       {detail && (
         <motion.div
-          className="credits-banner"
+          className="flex items-center gap-2 max-w-[780px] w-[calc(100%-2.5rem)] mx-auto mt-3 px-[0.85rem] py-[0.55rem] rounded-md bg-[#c94a3f]/10 text-danger-app text-[0.82rem] overflow-hidden"
           initial={{ opacity: 0, y: -10, height: 0 }}
           animate={{ opacity: 1, y: 0, height: 'auto' }}
           exit={{ opacity: 0, y: -10, height: 0 }}

@@ -27,7 +27,7 @@ export default function InputBox({ onSend, disabled }) {
   }
 
   return (
-    <div className="input-box">
+    <div className="flex items-end gap-2 max-w-[780px] w-full mx-auto mt-3 mb-5 pl-4 pr-[0.6rem] py-2 bg-surface-app border border-border-app rounded-lg shadow-app">
       <textarea
         ref={textareaRef}
         value={value}
@@ -36,10 +36,11 @@ export default function InputBox({ onSend, disabled }) {
         placeholder="Message Nexus..."
         rows={1}
         disabled={disabled}
+        className="flex-1 resize-none border-none bg-transparent text-text-app text-[0.9rem] leading-relaxed max-h-[200px] py-[0.35rem] px-0 focus:outline-none placeholder-text-muted-app"
       />
       <button
         type="button"
-        className="input-box__send"
+        className="shrink-0 w-[34px] h-[34px] rounded-[10px] border-none bg-accent-app text-accent-contrast-app grid place-items-center transition-opacity duration-150 disabled:opacity-35 disabled:cursor-not-allowed"
         onClick={handleSend}
         disabled={disabled || !value.trim()}
         aria-label="Send message"

@@ -3,16 +3,16 @@ import { motion } from 'framer-motion'
 
 export default function SignUpPage() {
   return (
-    <div className="auth-screen">
+    <div className="min-h-screen flex items-center justify-center bg-bg-app p-6">
       <motion.div
-        className="auth-screen__inner"
+        className="flex flex-col items-center gap-6"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="auth-screen__brand">
-          <span className="header__mark">N</span>
-          <span className="header__name">Nexus</span>
+        <div className="flex items-center gap-[0.55rem] font-display">
+          <span className="w-[34px] h-[34px] grid place-items-center rounded-[8px] bg-gradient-to-br from-accent-app to-[#b7a9ff] text-white font-bold text-[1.05rem]">N</span>
+          <span className="font-semibold text-[1.3rem] tracking-tight">Nexus</span>
         </div>
         <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" afterSignUpUrl="/" />
       </motion.div>

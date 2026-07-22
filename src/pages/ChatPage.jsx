@@ -22,9 +22,9 @@ export default function ChatPage() {
   } = useChat({ onCreditsChange: setCredits })
 
   return (
-    <div className="app">
+    <div className="grid grid-cols-1 md:grid-cols-[272px_1fr] h-screen">
       <Sidebar
-        className={sidebarOpen ? 'sidebar--open' : ''}
+        className={sidebarOpen ? 'max-md:translate-x-0' : ''}
         sessions={sessions}
         activeId={activeId}
         onSelect={(id) => {
@@ -39,10 +39,10 @@ export default function ChatPage() {
       />
 
       {sidebarOpen && (
-        <div className="app__scrim" onClick={() => setSidebarOpen(false)} />
+        <div className="hidden max-md:block fixed inset-0 bg-black/35 z-10" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <div className="app__main">
+      <div className="flex flex-col min-w-0 min-h-0">
         <Header onMenuClick={() => setSidebarOpen((o) => !o)} credits={profile?.credits} />
         <OutOfCreditsBanner detail={outOfCredits} />
         <ChatWindow

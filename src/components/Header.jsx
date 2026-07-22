@@ -8,31 +8,31 @@ export default function Header({ onMenuClick, credits }) {
   const { theme, toggleTheme } = useTheme()
 
   return (
-    <header className="header">
+    <header className="h-[56px] shrink-0 flex items-center gap-3 px-5 border-b border-border-app bg-bg-app">
       <button
         type="button"
-        className="header__menu"
+        className="hidden max-md:grid max-md:place-items-center bg-none border-none text-text-app p-[0.4rem] rounded-sm hover:bg-surface-alt-app transition-colors"
         onClick={onMenuClick}
         aria-label="Toggle chat list"
       >
         <Menu size={18} />
       </button>
 
-      <div className="header__brand">
-        <span className="header__mark">N</span>
-        <span className="header__name">Nexus</span>
+      <div className="flex items-center gap-2 font-display">
+        <span className="w-[26px] h-[26px] grid place-items-center rounded-[8px] bg-gradient-to-br from-accent-app to-[#b7a9ff] text-white font-bold text-[0.85rem]">N</span>
+        <span className="font-semibold text-[1rem] tracking-tight">Nexus</span>
       </div>
 
-      <div className="header__actions">
+      <div className="ml-auto flex items-center gap-2">
         <CreditsBadge credits={credits} />
 
-        <Link to="/settings" className="header__icon-button" aria-label="Settings">
+        <Link to="/settings" className="grid place-items-center w-8 h-8 rounded-sm border border-border-app bg-surface-app text-text-app hover:bg-surface-alt-app no-underline transition-colors" aria-label="Settings">
           <Settings size={16} />
         </Link>
 
         <button
           type="button"
-          className="header__icon-button"
+          className="grid place-items-center w-8 h-8 rounded-sm border border-border-app bg-surface-app text-text-app hover:bg-surface-alt-app no-underline transition-colors"
           onClick={toggleTheme}
           aria-label="Toggle dark mode"
         >
