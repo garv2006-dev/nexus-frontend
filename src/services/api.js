@@ -113,7 +113,14 @@ export async function streamMessage(token, sessionId, content, { onChunk, onDone
   }
 
   if (!res.ok || !res.body) {
-    onError?.(new Error('Failed to reach the server.'))
+    let errMessage = 'Failed to reach the server.'
+    try {
+      const body = await res.json()
+      if (body?.detail) errMessage = typeof body.detail === 'string' ? body.detail : body.detail.message || errMessage
+    } catch (e) {
+      errMessage = `HTTP ${res.status}: ${res.statusText}`
+    }
+    onError?.(new Error(errMessage))
     return
   }
 
