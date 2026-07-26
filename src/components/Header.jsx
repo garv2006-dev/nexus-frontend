@@ -24,20 +24,22 @@ export default function Header({ onMenuClick, credits }) {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <CreditsBadge credits={credits} />
+        <div className="hidden md:flex items-center gap-2">
+          <CreditsBadge credits={credits} />
 
-        <Link to="/settings" className="grid place-items-center w-8 h-8 rounded-sm border border-border-app bg-surface-app text-text-app hover:bg-surface-alt-app no-underline transition-colors" aria-label="Settings">
-          <Settings size={16} />
-        </Link>
+          <Link to="/settings" className="grid place-items-center w-8 h-8 rounded-sm border border-border-app bg-surface-app text-text-app hover:bg-surface-alt-app no-underline transition-colors" aria-label="Settings">
+            <Settings size={16} />
+          </Link>
 
-        <button
-          type="button"
-          className="grid place-items-center w-8 h-8 rounded-sm border border-border-app bg-surface-app text-text-app hover:bg-surface-alt-app no-underline transition-colors"
-          onClick={toggleTheme}
-          aria-label="Toggle dark mode"
-        >
-          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
+          <button
+            type="button"
+            className="grid place-items-center w-8 h-8 rounded-sm border border-border-app bg-surface-app text-text-app hover:bg-surface-alt-app no-underline transition-colors"
+            onClick={toggleTheme}
+            aria-label="Toggle dark mode"
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+        </div>
 
         <UserButton afterSignOutUrl="/sign-in" />
       </div>

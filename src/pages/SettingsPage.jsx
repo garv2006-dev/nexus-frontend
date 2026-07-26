@@ -33,7 +33,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-[640px] mx-auto pt-7 px-5 pb-16 max-md:pt-5 max-md:px-4 max-md:pb-12">
+    <div className="max-w-[800px] mx-auto pt-7 px-5 pb-16 max-md:pt-5 max-md:px-4 max-md:pb-12">
       <header className="flex flex-col gap-3 mb-6">
         <Link to="/" className="inline-flex items-center gap-[0.4rem] text-text-muted-app no-underline text-[0.85rem] w-fit hover:text-text-app transition-colors">
           <ArrowLeft size={16} />
@@ -99,17 +99,24 @@ export default function SettingsPage() {
       </motion.section>
 
       <motion.section
-        className="bg-surface-app border border-border-app rounded-lg p-6 mb-5 shadow-app max-md:p-[1.1rem]"
+        className="mb-8"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, delay: 0.06 }}
       >
-        <h2 className="font-display text-[1.05rem] mt-0 mx-0 mb-[0.35rem]">Account</h2>
-        <p className="text-text-muted-app text-[0.83rem] leading-relaxed mt-0 mx-0 mb-5">
-          Manage your email, password, avatar, and connected accounts.
-        </p>
-        <div className="settings-card__clerk">
-          <UserProfile routing="hash" />
+        <div className="mb-5">
+          <h2 className="font-display text-[1.4rem] mt-0 mx-0 mb-[0.35rem]">Account</h2>
+          <p className="text-text-muted-app text-[0.9rem] leading-relaxed m-0">
+            Manage your email, password, avatar, and connected accounts.
+          </p>
+        </div>
+        <div className="w-full clerk-profile-wrapper">
+          <UserProfile routing="hash" appearance={{
+            elements: {
+              card: 'bg-surface-app shadow-app border border-border-app rounded-lg',
+              rootBox: 'w-full'
+            }
+          }} />
         </div>
       </motion.section>
     </div>

@@ -1,5 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { MessageSquare, Plus, Trash2 } from 'lucide-react'
+import { MessageSquare, Plus, Trash2, Moon, Settings, Sun } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { useTheme } from '../context/ThemeContext'
+import CreditsBadge from './CreditsBadge'
 
 export default function Sidebar({
   sessions,
@@ -7,10 +10,13 @@ export default function Sidebar({
   onSelect,
   onNew,
   onDelete,
+  credits,
   className = '',
 }) {
+  const { theme, toggleTheme } = useTheme()
+
   return (
-    <aside className={`bg-surface-alt-app border-r border-border-app flex flex-col p-4 gap-3 overflow-hidden max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:right-[25%] max-md:z-20 max-md:-translate-x-full max-md:transition-transform max-md:duration-200 max-md:shadow-app ${className}`}>
+    <aside className={`bg-surface-alt-app border-r border-border-app flex flex-col p-4 gap-3 overflow-hidden max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:w-[260px] max-md:z-20 max-md:-translate-x-full max-md:transition-transform max-md:duration-200 max-md:shadow-app ${className}`}>
       <button type="button" className="flex items-center gap-2 px-3 py-2.5 rounded-md border border-border-app bg-surface-app text-text-app text-sm font-medium hover:border-accent-app hover:text-accent-app transition-colors" onClick={onNew}>
         <Plus size={16} />
         <span>New chat</span>
@@ -48,6 +54,21 @@ export default function Sidebar({
             </motion.div>
           ))}
         </AnimatePresence>
+      </div>
+
+      <div className="hidden max-md:flex items-center gap-2 pt-3 border-t border-border-app mt-auto">
+        <CreditsBadge credits={credits} />
+        <Link to="/settings" className="grid place-items-center w-8 h-8 rounded-sm border border-border-app bg-surface-app text-text-app hover:bg-surface-alt-app no-underline transition-colors ml-auto" aria-label="Settings">
+          <Settings size={16} />
+        </Link>
+        <button
+          type="button"
+          className="grid place-items-center w-8 h-8 rounded-sm border border-border-app bg-surface-app text-text-app hover:bg-surface-alt-app no-underline transition-colors"
+          onClick={toggleTheme}
+          aria-label="Toggle dark mode"
+        >
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
       </div>
     </aside>
   )

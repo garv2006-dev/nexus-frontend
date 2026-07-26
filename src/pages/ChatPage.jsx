@@ -27,6 +27,7 @@ export default function ChatPage() {
         className={sidebarOpen ? 'max-md:translate-x-0' : ''}
         sessions={sessions}
         activeId={activeId}
+        credits={profile?.credits}
         onSelect={(id) => {
           selectSession(id)
           setSidebarOpen(false)
