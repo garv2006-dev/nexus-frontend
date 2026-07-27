@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/+$/, '')
 
 function authHeaders(token) {
   return token ? { Authorization: `Bearer ${token}` } : {}
@@ -12,10 +12,14 @@ async function handle(res) {
     } catch {
       // no JSON body
     }
+    let defaultMsg = `Request failed with status ${res.status}`
+    if (res.status === 404) {
+      defaultMsg = `Request failed with status 404: Endpoint not found. Ensure VITE_API_BASE_URL is set in Vercel environment variables to your deployed backend (e.g. https://your-backend.onrender.com).`
+    }
     const err = new Error(
       (detail && detail.detail && detail.detail.message) ||
         (typeof detail?.detail === 'string' ? detail.detail : null) ||
-        `Request failed with status ${res.status}`
+        defaultMsg
     )
     err.status = res.status
     err.detail = detail?.detail
