@@ -83,7 +83,7 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between gap-4 flex-wrap mt-[0.25rem] max-md:flex-col max-md:items-stretch">
               <span className="text-[0.78rem] text-text-muted-app font-mono">
-                {profile?.credits ?? '—'} credits remaining this hour
+                {profile?.credits ?? '—'} credits remaining today
               </span>
               <button type="submit" className="inline-flex items-center gap-[0.4rem] px-4 py-[0.55rem] rounded-sm border-none bg-accent-app text-accent-contrast-app text-[0.85rem] font-medium disabled:opacity-60 disabled:cursor-not-allowed max-md:justify-center transition-opacity" disabled={saving}>
                 {saving ? (
