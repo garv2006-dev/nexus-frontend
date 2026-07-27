@@ -75,8 +75,17 @@ export function useChat({ onCreditsChange } = {}) {
 
       let sessionId = activeId
       if (!sessionId) {
-        const session = await newChat()
-        sessionId = session.id
+        try {
+          const session = await newChat()
+          sessionId = session.id
+        } catch (err) {
+          setMessages((m) => [
+            ...m,
+            { id: `local-user-${Date.now()}`, role: 'user', content },
+            { id: `error-${Date.now()}`, role: 'assistant', content: `Failed to create session: ${err.message}`, error: true },
+          ])
+          return
+        }
       }
 
       setMessages((m) => [
