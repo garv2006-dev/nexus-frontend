@@ -4,6 +4,9 @@ import { dark } from '@clerk/themes'
 import { useTheme } from './context/ThemeContext'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+const CLERK_JS_URL =
+  import.meta.env.VITE_CLERK_JS_URL ||
+  'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js'
 
 /**
  * Thin wrapper so Clerk's own UI (SignIn, SignUp, UserButton, UserProfile)
@@ -51,6 +54,7 @@ export default function ClerkThemeProvider({ children }) {
   return (
     <ClerkProvider
       publishableKey={PUBLISHABLE_KEY}
+      clerkJSUrl={CLERK_JS_URL}
       afterSignOutUrl="/sign-in"
       appearance={{
         baseTheme: theme === 'dark' ? dark : undefined,
