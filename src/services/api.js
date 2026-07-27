@@ -1,7 +1,24 @@
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/+$/, '')
+const API_BASE = (
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  'http://localhost:8000'
+).replace(/\/+$/, '')
 
 function authHeaders(token) {
   return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
+async function safeFetch(url, options) {
+  try {
+    return await fetch(url, options)
+  } catch (err) {
+    if (err instanceof TypeError || err?.message === 'Failed to fetch') {
+      throw new Error(
+        `Failed to fetch: Server unreachable at ${API_BASE}. Ensure your backend server is running and VITE_API_BASE_URL / VITE_API_URL is set correctly.`
+      )
+    }
+    throw err
+  }
 }
 
 async function handle(res) {
@@ -14,7 +31,7 @@ async function handle(res) {
     }
     let defaultMsg = `Request failed with status ${res.status}`
     if (res.status === 404) {
-      defaultMsg = `Request failed with status 404: Endpoint not found. Ensure VITE_API_BASE_URL is set in Vercel environment variables to your deployed backend (e.g. https://your-backend.onrender.com).`
+      defaultMsg = `Request failed with status 404: Endpoint not found. Ensure VITE_API_BASE_URL (or VITE_API_URL) is set in Vercel environment variables to your deployed backend (e.g. https://your-backend.onrender.com).`
     }
     const err = new Error(
       (detail && detail.detail && detail.detail.message) ||
@@ -31,12 +48,12 @@ async function handle(res) {
 // --- Profile -----------------------------------------------------------
 
 export async function getProfile(token) {
-  const res = await fetch(`${API_BASE}/api/users/me`, { headers: authHeaders(token) })
+  const res = await safeFetch(`${API_BASE}/api/users/me`, { headers: authHeaders(token) })
   return handle(res)
 }
 
 export async function syncProfile(token, { email, name, avatarUrl }) {
-  const res = await fetch(`${API_BASE}/api/users/sync`, {
+  const res = await safeFetch(`${API_BASE}/api/users/sync`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
     body: JSON.stringify({ email, name, avatar_url: avatarUrl }),
@@ -45,7 +62,7 @@ export async function syncProfile(token, { email, name, avatarUrl }) {
 }
 
 export async function updateProfile(token, { name, bio, avatarUrl }) {
-  const res = await fetch(`${API_BASE}/api/users/me`, {
+  const res = await safeFetch(`${API_BASE}/api/users/me`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
     body: JSON.stringify({ name, bio, avatar_url: avatarUrl }),
@@ -56,12 +73,12 @@ export async function updateProfile(token, { name, bio, avatarUrl }) {
 // --- Sessions ------------------------------------------------------------
 
 export async function listSessions(token) {
-  const res = await fetch(`${API_BASE}/api/sessions`, { headers: authHeaders(token) })
+  const res = await safeFetch(`${API_BASE}/api/sessions`, { headers: authHeaders(token) })
   return handle(res)
 }
 
 export async function createSession(token) {
-  const res = await fetch(`${API_BASE}/api/sessions`, {
+  const res = await safeFetch(`${API_BASE}/api/sessions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
     body: JSON.stringify({}),
@@ -70,12 +87,12 @@ export async function createSession(token) {
 }
 
 export async function getSession(token, id) {
-  const res = await fetch(`${API_BASE}/api/sessions/${id}`, { headers: authHeaders(token) })
+  const res = await safeFetch(`${API_BASE}/api/sessions/${id}`, { headers: authHeaders(token) })
   return handle(res)
 }
 
 export async function deleteSession(token, id) {
-  const res = await fetch(`${API_BASE}/api/sessions/${id}`, {
+  const res = await safeFetch(`${API_BASE}/api/sessions/${id}`, {
     method: 'DELETE',
     headers: authHeaders(token),
   })
@@ -83,7 +100,7 @@ export async function deleteSession(token, id) {
 }
 
 export async function renameSession(token, id, title) {
-  const res = await fetch(`${API_BASE}/api/sessions/${id}`, {
+  const res = await safeFetch(`${API_BASE}/api/sessions/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
     body: JSON.stringify({ title }),
@@ -100,7 +117,7 @@ export async function renameSession(token, id, title) {
 export async function streamMessage(token, sessionId, content, { onChunk, onDone, onError, onOutOfCredits }) {
   let res
   try {
-    res = await fetch(`${API_BASE}/api/sessions/${sessionId}/messages`, {
+    res = await safeFetch(`${API_BASE}/api/sessions/${sessionId}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
       body: JSON.stringify({ content }),
