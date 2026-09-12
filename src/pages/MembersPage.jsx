@@ -139,20 +139,20 @@ export default function MembersPage() {
     const r = (role || 'member').toLowerCase()
     if (r === 'owner') {
       return (
-        <span className="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-semibold flex items-center gap-1">
+        <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-semibold flex items-center gap-1">
           <Crown className="w-3 h-3" /> Owner
         </span>
       )
     }
     if (r === 'admin') {
       return (
-        <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 text-[10px] font-semibold flex items-center gap-1">
+        <span className="px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 text-[10px] font-semibold flex items-center gap-1">
           <Shield className="w-3 h-3" /> Admin
         </span>
       )
     }
     return (
-      <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-semibold flex items-center gap-1">
+      <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-semibold flex items-center gap-1">
         <User className="w-3 h-3 text-slate-400" /> Member
       </span>
     )
@@ -163,10 +163,10 @@ export default function MembersPage() {
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-              <Users className="w-6 h-6 text-violet-400" /> Workspace Members
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+              <Users className="w-5 h-5 text-violet-400" /> Workspace Members
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 mt-1">
               Manage member roles, view active members, and track pending invitations.
             </p>
           </div>
@@ -177,37 +177,37 @@ export default function MembersPage() {
               setInviteModalOpen(true)
             }}
             disabled={!isOwner}
-            className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold shadow-lg shadow-indigo-600/25 transition-all flex items-center gap-2 shrink-0"
+            className="px-3.5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold shadow-md shadow-indigo-600/20 transition-all flex items-center gap-1.5 shrink-0"
           >
             <UserPlus className="w-4 h-4" /> Invite Member
           </button>
         </div>
 
         {error && (
-          <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+          <div className="p-3.5 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {successBanner && (
-          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2 animate-in fade-in duration-200">
+          <div className="p-3.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2 animate-in fade-in duration-200">
             <Check className="w-4 h-4 shrink-0" />
             <span>{successBanner}</span>
           </div>
         )}
 
         {/* Member Capacity Progress Meter */}
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 p-5 space-y-3 shadow-xl">
+        <div className="rounded-lg bg-slate-900 border border-slate-800 p-5 space-y-3 shadow-lg">
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold text-white">Member Capacity</span>
             <span className="font-mono text-slate-400">
               {currentCount} / {maxMembers} Members
             </span>
           </div>
-          <div className="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden">
+          <div className="w-full h-2 rounded-md bg-slate-800 overflow-hidden">
             <div
-              className={`h-full transition-all duration-500 rounded-full ${
+              className={`h-full transition-all duration-500 rounded-md ${
                 isLimitReached ? 'bg-amber-500' : 'bg-indigo-500'
               }`}
               style={{ width: `${Math.min(100, (currentCount / maxMembers) * 100)}%` }}
@@ -221,9 +221,9 @@ export default function MembersPage() {
         </div>
 
         {/* Active Members List Table */}
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden shadow-xl">
-          <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">Active Members</h3>
+        <div className="rounded-lg bg-slate-900 border border-slate-800 overflow-hidden shadow-lg">
+          <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
+            <h3 className="text-xs sm:text-sm font-semibold text-white">Active Members</h3>
             <span className="text-xs text-slate-400">{members.length} Active</span>
           </div>
 
@@ -238,10 +238,10 @@ export default function MembersPage() {
                 return (
                   <div
                     key={m.id}
-                    className="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-slate-800/40 transition-colors"
+                    className="p-3.5 sm:px-5 flex items-center justify-between gap-4 hover:bg-slate-800/40 transition-colors"
                   >
                     <div className="flex items-center gap-3 truncate">
-                      <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-200 shrink-0">
+                      <div className="w-8 h-8 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-200 shrink-0">
                         {m.name ? m.name[0].toUpperCase() : 'U'}
                       </div>
                       <div className="truncate">
@@ -260,7 +260,7 @@ export default function MembersPage() {
                       {isOwner && !isMemberOwner && (
                         <button
                           onClick={() => setRemoveModalMember(m)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-slate-800 transition-colors"
+                          className="p-1.5 rounded-md text-slate-500 hover:text-red-400 hover:bg-slate-800 transition-colors"
                           title="Remove Member"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -275,11 +275,11 @@ export default function MembersPage() {
         </div>
 
         {/* Pending Workspace Invitations Section */}
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden shadow-xl">
-          <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div className="rounded-lg bg-slate-900 border border-slate-800 overflow-hidden shadow-lg">
+          <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-amber-400" />
-              <h3 className="text-sm font-semibold text-white">Pending Invitations Sent</h3>
+              <h3 className="text-xs sm:text-sm font-semibold text-white">Pending Invitations Sent</h3>
             </div>
             <span className="text-xs text-amber-400 font-medium">{pendingInvitations.length} Pending</span>
           </div>
@@ -297,17 +297,17 @@ export default function MembersPage() {
               {pendingInvitations.map((inv) => (
                 <div
                   key={inv.id}
-                  className="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-slate-800/30 transition-colors"
+                  className="p-3.5 sm:px-5 flex items-center justify-between gap-4 hover:bg-slate-800/30 transition-colors"
                 >
                   <div className="flex items-center gap-3 truncate">
-                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
                       <Mail className="w-4 h-4" />
                     </div>
                     <div className="truncate">
                       <div className="text-xs font-semibold text-white flex items-center gap-2 truncate">
                         <span>{inv.email}</span>
                         {renderRoleBadge(inv.role)}
-                        <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-medium">
+                        <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-medium">
                           Pending
                         </span>
                       </div>
@@ -325,7 +325,7 @@ export default function MembersPage() {
                       <button
                         onClick={() => handleRevokeInvitation(inv.id)}
                         disabled={revokingId === inv.id}
-                        className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 text-xs font-medium transition-colors"
+                        className="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 text-xs font-medium transition-colors"
                         title="Revoke Invitation"
                       >
                         {revokingId === inv.id ? 'Revoking...' : 'Revoke'}
@@ -342,7 +342,7 @@ export default function MembersPage() {
       {/* Invite Member Modal with Role Selection */}
       {inviteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-800 p-6 relative space-y-4 shadow-2xl">
+          <div className="w-full max-w-md rounded-lg bg-slate-900 border border-slate-800 p-6 relative space-y-4 shadow-xl">
             <button
               onClick={() => setInviteModalOpen(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 p-1"
@@ -351,8 +351,8 @@ export default function MembersPage() {
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-violet-600/20 text-violet-400 flex items-center justify-center border border-violet-500/30">
-                <Mail className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-md bg-violet-600/20 text-violet-400 flex items-center justify-center border border-violet-500/30">
+                <Mail className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="text-base font-semibold text-white">Invite Member</h3>
@@ -361,7 +361,7 @@ export default function MembersPage() {
             </div>
 
             {modalError && (
-              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+              <div className="p-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
                 {modalError}
               </div>
             )}
@@ -377,7 +377,7 @@ export default function MembersPage() {
                   placeholder="colleague@example.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                   autoFocus
                 />
               </div>
@@ -389,7 +389,7 @@ export default function MembersPage() {
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-indigo-500"
                 >
                   <option value="member">Member (Standard Access)</option>
                   <option value="admin">Admin (Manage Documents & Settings)</option>
@@ -401,14 +401,14 @@ export default function MembersPage() {
                 <button
                   type="button"
                   onClick={() => setInviteModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800 transition-colors"
+                  className="px-3.5 py-2 rounded-md text-xs font-medium text-slate-300 hover:bg-slate-800 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={inviting || !inviteEmail.trim()}
-                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold transition-all"
+                  className="px-3.5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold transition-all shadow-md shadow-indigo-600/20"
                 >
                   {inviting ? 'Sending...' : 'Send Invitation'}
                 </button>

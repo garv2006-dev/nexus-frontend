@@ -25,9 +25,10 @@
 }
 
 :root {
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
 
   --sidebar-width: 272px;
   --header-height: 56px;
@@ -97,143 +98,7 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: var(--scrollbar);
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
-  }
-}
-
-/* Custom Third-party / Widget Overrides */
-
-.header .cl-userButtonBox {
-  transform: scale(0.92);
-}
-
-/* Animations */
-@keyframes blink {
-  50% {
-    opacity: 0;
-  }
-}
-
-.message__cursor {
-  animation: blink 1s step-start infinite;
-}
-
-.spin {
-  animation: spin 0.8s linear infinite;
-}
-
-@import "tailwindcss";
-
-@theme {
-  --font-display: 'Space Grotesk', 'Inter', sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-
-  --color-bg-app: var(--bg);
-  --color-surface-app: var(--surface);
-  --color-surface-alt-app: var(--surface-alt);
-  --color-border-app: var(--border);
-  --color-text-app: var(--text);
-  --color-text-muted-app: var(--text-muted);
-  --color-accent-app: var(--accent);
-  --color-accent-contrast-app: var(--accent-contrast);
-  --color-accent-soft-app: var(--accent-soft);
-  --color-user-bubble-bg-app: var(--user-bubble-bg);
-  --color-user-bubble-text-app: var(--user-bubble-text);
-  --color-assistant-bubble-bg-app: var(--assistant-bubble-bg);
-  --color-assistant-bubble-border-app: var(--assistant-bubble-border);
-  --color-danger-app: var(--danger);
-  --color-scrollbar-app: var(--scrollbar);
-  
-  --shadow-app: var(--shadow);
-}
-
-:root {
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-
-  --sidebar-width: 272px;
-  --header-height: 56px;
-}
-
-[data-theme='light'] {
-  --bg: #faf9f6;
-  --surface: #ffffff;
-  --surface-alt: #f1efe9;
-  --border: #e6e3db;
-  --text: #1b1d22;
-  --text-muted: #6b6f76;
-  --accent: #5b4fe8;
-  --accent-contrast: #ffffff;
-  --accent-soft: #ece9fc;
-  --user-bubble-bg: #1b1d22;
-  --user-bubble-text: #f5f5f4;
-  --assistant-bubble-bg: #ffffff;
-  --assistant-bubble-border: #e6e3db;
-  --danger: #c94a3f;
-  --scrollbar: #d8d5cc;
-  --shadow: 0 1px 2px rgba(20, 20, 20, 0.04), 0 8px 24px rgba(20, 20, 20, 0.05);
-}
-
-[data-theme='dark'] {
-  --bg: #101114;
-  --surface: #16171c;
-  --surface-alt: #1c1e24;
-  --border: #2a2c33;
-  --text: #ededef;
-  --text-muted: #9a9ca5;
-  --accent: #8b83ff;
-  --accent-contrast: #101114;
-  --accent-soft: #24223d;
-  --user-bubble-bg: #2a2c33;
-  --user-bubble-text: #f2f2f3;
-  --assistant-bubble-bg: #16171c;
-  --assistant-bubble-border: #2a2c33;
-  --danger: #ef7a6d;
-  --scrollbar: #33353d;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
-}
-
-html,
-body,
-#root {
-  height: 100%;
-}
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-::selection {
-  background: var(--accent-soft);
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--scrollbar);
-  border-radius: 999px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -277,19 +142,16 @@ body {
 }
 
 /* Hide Clerk Watermark ("Secured by Clerk" and "Development mode") */
-/* Remove .cl-rootBox constraint because mobile popovers render in portals outside of it */
 div:has(> a[href*="clerk.com"]),
 div:has(> a[href*="clerk.dev"]) {
   display: none !important;
 }
 
-/* Fallbacks for older browsers */
 a[href*="clerk.com"],
 a[href*="clerk.dev"] {
   display: none !important;
 }
 
-/* Specific Clerk classes for the user button footer and other known internal classes */
 .cl-internal-b3al6g,
 .cl-internal-1dauvpw,
 .cl-internal-1hp5nqm,
