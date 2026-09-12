@@ -4,8 +4,22 @@ const API_BASE = (
   'http://localhost:8000'
 ).replace(/\/+$/, '')
 
-function authHeaders(token) {
-  return token ? { Authorization: `Bearer ${token}` } : {}
+let currentUserEmail = ''
+
+export function setCurrentUserEmail(email) {
+  currentUserEmail = email || ''
+}
+
+function authHeaders(token, emailOverride) {
+  const headers = {}
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  const email = emailOverride || currentUserEmail
+  if (email) {
+    headers['X-User-Email'] = email
+  }
+  return headers
 }
 
 async function safeFetch(url, options) {
@@ -14,7 +28,7 @@ async function safeFetch(url, options) {
   } catch (err) {
     if (err instanceof TypeError || err?.message === 'Failed to fetch') {
       throw new Error(
-        `Failed to fetch: Server unreachable at ${API_BASE}. Ensure your backend server is running and VITE_API_BASE_URL / VITE_API_URL is set correctly.`
+        `Failed to fetch: Server unreachable at ${API_BASE}. Ensure your backend server is running.`
       )
     }
     throw err
@@ -31,13 +45,12 @@ async function handle(res) {
     }
     let defaultMsg = `Request failed with status ${res.status}`
     if (res.status === 404) {
-      defaultMsg = `Request failed with status 404: Endpoint not found. Ensure VITE_API_BASE_URL (or VITE_API_URL) is set in Vercel environment variables to your deployed backend (e.g. https://your-backend.onrender.com).`
+      defaultMsg = `Endpoint not found (404). Ensure VITE_API_BASE_URL points to backend.`
     }
-    const err = new Error(
-      (detail && detail.detail && detail.detail.message) ||
-        (typeof detail?.detail === 'string' ? detail.detail : null) ||
-        defaultMsg
-    )
+    const msg = (detail && typeof detail.detail === 'string' ? detail.detail : null) ||
+                (detail && detail.detail && detail.detail.message) ||
+                defaultMsg
+    const err = new Error(msg)
     err.status = res.status
     err.detail = detail?.detail
     throw err
@@ -52,125 +65,185 @@ export async function getProfile(token) {
   return handle(res)
 }
 
-export async function syncProfile(token, { email, name, avatarUrl }) {
-  const res = await safeFetch(`${API_BASE}/api/users/sync`, {
+// --- Workspaces --------------------------------------------------------
+
+export async function listWorkspaces(token) {
+  const res = await safeFetch(`${API_BASE}/api/workspaces`, { headers: authHeaders(token) })
+  return handle(res)
+}
+
+export async function createWorkspace(token, name) {
+  const res = await safeFetch(`${API_BASE}/api/workspaces`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
-    body: JSON.stringify({ email, name, avatar_url: avatarUrl }),
+    body: JSON.stringify({ name }),
   })
   return handle(res)
 }
 
-export async function updateProfile(token, { name, bio, avatarUrl }) {
-  const res = await safeFetch(`${API_BASE}/api/users/me`, {
+export async function getWorkspace(token, id) {
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${id}`, { headers: authHeaders(token) })
+  return handle(res)
+}
+
+export async function updateWorkspaceSettings(token, id, data) {
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${id}/settings`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
-    body: JSON.stringify({ name, bio, avatar_url: avatarUrl }),
+    body: JSON.stringify(data),
   })
   return handle(res)
 }
 
-// --- Sessions ------------------------------------------------------------
-
-export async function listSessions(token) {
-  const res = await safeFetch(`${API_BASE}/api/sessions`, { headers: authHeaders(token) })
-  return handle(res)
-}
-
-export async function createSession(token) {
-  const res = await safeFetch(`${API_BASE}/api/sessions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
-    body: JSON.stringify({}),
-  })
-  return handle(res)
-}
-
-export async function getSession(token, id) {
-  const res = await safeFetch(`${API_BASE}/api/sessions/${id}`, { headers: authHeaders(token) })
-  return handle(res)
-}
-
-export async function deleteSession(token, id) {
-  const res = await safeFetch(`${API_BASE}/api/sessions/${id}`, {
+export async function deleteWorkspace(token, id) {
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${id}`, {
     method: 'DELETE',
     headers: authHeaders(token),
   })
   return handle(res)
 }
 
-export async function renameSession(token, id, title) {
-  const res = await safeFetch(`${API_BASE}/api/sessions/${id}`, {
-    method: 'PATCH',
+// --- Members & Invitations ---------------------------------------------
+
+export async function listWorkspaceMembers(token, workspaceId) {
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${workspaceId}/members`, {
+    headers: authHeaders(token),
+  })
+  return handle(res)
+}
+
+export async function inviteWorkspaceMember(token, workspaceId, email, role = 'member') {
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${workspaceId}/invitations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+    body: JSON.stringify({ email, role }),
+  })
+  return handle(res)
+}
+
+export async function listWorkspaceInvitations(token, workspaceId) {
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${workspaceId}/invitations`, {
+    headers: authHeaders(token),
+  })
+  return handle(res)
+}
+
+export async function cancelWorkspaceInvitation(token, workspaceId, invitationId) {
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${workspaceId}/invitations/${invitationId}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  })
+  return handle(res)
+}
+
+export async function removeWorkspaceMember(token, workspaceId, targetUserId) {
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${workspaceId}/members/${targetUserId}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  })
+  return handle(res)
+}
+
+export async function listPendingInvitations(token) {
+  const res = await safeFetch(`${API_BASE}/api/invitations`, { headers: authHeaders(token) })
+  return handle(res)
+}
+
+export async function acceptInvitation(token, invitationId) {
+  const res = await safeFetch(`${API_BASE}/api/invitations/${invitationId}/accept`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  })
+  return handle(res)
+}
+
+export async function rejectInvitation(token, invitationId) {
+  const res = await safeFetch(`${API_BASE}/api/invitations/${invitationId}/reject`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  })
+  return handle(res)
+}
+
+// --- Documents ---------------------------------------------------------
+
+export async function listWorkspaceDocuments(token, workspaceId) {
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${workspaceId}/documents`, {
+    headers: authHeaders(token),
+  })
+  return handle(res)
+}
+
+export async function uploadWorkspaceDocuments(token, workspaceId, fileList) {
+  const formData = new FormData()
+  for (let i = 0; i < fileList.length; i++) {
+    formData.append('files', fileList[i])
+  }
+
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${workspaceId}/documents/upload`, {
+    method: 'POST',
+    headers: authHeaders(token), // Content-Type header auto-set by fetch with boundary
+    body: formData,
+  })
+  return handle(res)
+}
+
+export async function deleteWorkspaceDocument(token, workspaceId, documentId) {
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${workspaceId}/documents/${documentId}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  })
+  return handle(res)
+}
+
+// --- RAG Conversations & Chat ------------------------------------------
+
+export async function listConversations(token, workspaceId) {
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${workspaceId}/conversations`, {
+    headers: authHeaders(token),
+  })
+  return handle(res)
+}
+
+export async function createConversation(token, workspaceId, title = 'New Chat') {
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${workspaceId}/conversations`, {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
     body: JSON.stringify({ title }),
   })
   return handle(res)
 }
 
-/**
- * Sends a message and streams the assistant's reply back via Server-Sent
- * Events. Calls the relevant callback as chunks / completion / errors arrive.
- * A 402 (out of credits) response arrives as a normal JSON body, not a
- * stream, so it's handled before we ever start reading the stream.
- */
-export async function streamMessage(token, sessionId, content, { onChunk, onDone, onError, onOutOfCredits }) {
-  let res
-  try {
-    res = await safeFetch(`${API_BASE}/api/sessions/${sessionId}/messages`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
-      body: JSON.stringify({ content }),
-    })
-  } catch (err) {
-    onError?.(err)
-    return
-  }
+export async function getConversation(token, workspaceId, conversationId) {
+  const res = await safeFetch(
+    `${API_BASE}/api/workspaces/${workspaceId}/conversations/${conversationId}`,
+    { headers: authHeaders(token) }
+  )
+  return handle(res)
+}
 
-  if (res.status === 402) {
-    const body = await res.json().catch(() => null)
-    onOutOfCredits?.(body?.detail)
-    return
-  }
+export async function deleteConversation(token, workspaceId, conversationId) {
+  const res = await safeFetch(
+    `${API_BASE}/api/workspaces/${workspaceId}/conversations/${conversationId}`,
+    { method: 'DELETE', headers: authHeaders(token) }
+  )
+  return handle(res)
+}
 
-  if (!res.ok || !res.body) {
-    let errMessage = 'Failed to reach the server.'
-    try {
-      const body = await res.json()
-      if (body?.detail) errMessage = typeof body.detail === 'string' ? body.detail : body.detail.message || errMessage
-    } catch (e) {
-      errMessage = `HTTP ${res.status}: ${res.statusText}`
-    }
-    onError?.(new Error(errMessage))
-    return
-  }
+export async function sendChatQuery(token, workspaceId, conversationId, query) {
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${workspaceId}/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+    body: JSON.stringify({ conversation_id: conversationId, query }),
+  })
+  return handle(res)
+}
 
-  const reader = res.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
+// --- Usage Dashboard ----------------------------------------------------
 
-  while (true) {
-    const { value, done } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-
-    const parts = buffer.split('\n\n')
-    buffer = parts.pop() ?? ''
-
-    for (const part of parts) {
-      const line = part.trim()
-      if (!line.startsWith('data:')) continue
-      const jsonStr = line.slice(5).trim()
-      if (!jsonStr) continue
-
-      try {
-        const payload = JSON.parse(jsonStr)
-        if (payload.type === 'chunk') onChunk?.(payload.content)
-        else if (payload.type === 'done') onDone?.(payload)
-        else if (payload.type === 'error') onError?.(new Error(payload.message))
-      } catch {
-        // Ignore a malformed frame rather than breaking the whole stream.
-      }
-    }
-  }
+export async function getWorkspaceUsage(token, workspaceId) {
+  const res = await safeFetch(`${API_BASE}/api/workspaces/${workspaceId}/usage`, {
+    headers: authHeaders(token),
+  })
+  return handle(res)
 }

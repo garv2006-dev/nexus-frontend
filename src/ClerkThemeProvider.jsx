@@ -38,8 +38,6 @@ export default function ClerkThemeProvider({ children }) {
     })
     
     observer.observe(document.body, { childList: true, subtree: true })
-    
-    // Initial check
     hideBadge()
     
     return () => observer.disconnect()
@@ -55,10 +53,12 @@ export default function ClerkThemeProvider({ children }) {
     <ClerkProvider
       publishableKey={PUBLISHABLE_KEY}
       clerkJSUrl={CLERK_JS_URL}
-      afterSignOutUrl="/sign-in"
+      afterSignOutUrl="/login"
+      signInUrl="/login"
+      signUpUrl="/signup"
       appearance={{
         baseTheme: theme === 'dark' ? dark : undefined,
-        variables: { colorPrimary: '#5b4fe8' },
+        variables: { colorPrimary: '#6366f1' },
       }}
     >
       {children}
