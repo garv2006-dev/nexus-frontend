@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import {
   FileText,
@@ -9,8 +9,11 @@ import {
   AlertCircle,
   Loader2,
   Sparkles,
-  Info,
-  X
+  Lock,
+  ArrowRight,
+  X,
+  Layers,
+  HardDrive
 } from 'lucide-react'
 import WorkspaceLayout from '../components/WorkspaceLayout'
 import ConfirmModal from '../components/ConfirmModal'
@@ -39,6 +42,17 @@ export default function DocumentsPage() {
 
   const fileInputRef = useRef(null)
 
+  const userRole = activeWorkspace?.user_role || 'member'
+  const canUpload = userRole === 'owner' || userRole === 'admin'
+  const maxPages = activeWorkspace?.max_pages || 50
+
+  const docCount = documents.length
+  const pageCount = activeWorkspace?.page_count ?? documents.reduce((sum, d) => sum + (d.page_count || 1), 0)
+  const availablePages = Math.max(0, maxPages - pageCount)
+
+  const isPageLimitReached = availablePages <= 0
+  const capacityPercent = Math.min(100, Math.round((pageCount / maxPages) * 100))
+
   const fetchDocs = async () => {
     if (!workspaceId) return
     try {
@@ -61,6 +75,7 @@ export default function DocumentsPage() {
   const handleDrag = (e) => {
     e.preventDefault()
     e.stopPropagation()
+    if (!canUpload || isPageLimitReached) return
     if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true)
     } else if (e.type === 'dragleave') {
@@ -72,6 +87,7 @@ export default function DocumentsPage() {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
+    if (!canUpload || isPageLimitReached) return
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const valid = Array.from(e.dataTransfer.files).filter(f => {
         const ext = f.name.split('.').pop().toLowerCase()
@@ -82,6 +98,7 @@ export default function DocumentsPage() {
   }
 
   const handleFileChange = (e) => {
+    if (!canUpload || isPageLimitReached) return
     if (e.target.files && e.target.files.length > 0) {
       setSelectedFiles(prev => [...prev, ...Array.from(e.target.files)])
     }
@@ -92,7 +109,7 @@ export default function DocumentsPage() {
   }
 
   const handleUploadSubmit = async () => {
-    if (selectedFiles.length === 0 || uploading) return
+    if (selectedFiles.length === 0 || uploading || !canUpload) return
     try {
       setUploading(true)
       setError(null)
@@ -150,13 +167,42 @@ export default function DocumentsPage() {
   return (
     <WorkspaceLayout>
       <div className="max-w-5xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-            <FileText className="w-6 h-6 text-indigo-400" /> Documents Management
-          </h1>
-          <p className="text-xs text-slate-400">
-            Upload PDF, DOC, or DOCX documents to populate your workspace vector index.
-          </p>
+        {/* Header & Page Capacity Card */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+              <FileText className="w-6 h-6 text-indigo-400" /> Documents & Vector Index
+            </h1>
+            <p className="text-xs text-slate-400">
+              Default Plan: <strong>50 Pages Max Capacity</strong> (No document count limit. Only Owners & Admins can add documents).
+            </p>
+          </div>
+
+          {/* Available Page Space Card */}
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 to-indigo-950/40 border border-slate-800 space-y-2 w-full md:w-80 shadow-xl">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-slate-400 font-medium flex items-center gap-1.5">
+                <HardDrive className="w-3.5 h-3.5 text-indigo-400" /> Page Capacity
+              </span>
+              <span className="font-mono text-white font-bold">{pageCount} / {maxPages} Used</span>
+            </div>
+
+            <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+              <div
+                className={`h-full transition-all duration-500 ${capacityPercent >= 100 ? 'bg-red-500' : capacityPercent >= 80 ? 'bg-amber-400' : 'bg-emerald-400'}`}
+                style={{ width: `${capacityPercent}%` }}
+              />
+            </div>
+
+            <div className="flex justify-between items-center text-[11px] pt-0.5">
+              <span className="text-slate-400">Available Space:</span>
+              <span className={`font-mono font-bold px-2 py-0.5 rounded-full text-[10px] ${
+                availablePages > 0 ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+              }`}>
+                {availablePages} {availablePages === 1 ? 'Page Space' : 'Pages Space'} Available
+              </span>
+            </div>
+          </div>
         </div>
 
         {error && (
@@ -166,46 +212,87 @@ export default function DocumentsPage() {
           </div>
         )}
 
-        {/* Multi-File Upload Drag & Drop Dropzone */}
-        <div
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-          className={`rounded-3xl border-2 border-dashed p-8 text-center transition-all ${
-            dragActive
-              ? 'border-indigo-500 bg-indigo-500/10'
-              : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
-          }`}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept=".pdf,.doc,.docx"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-
-          <div className="w-12 h-12 rounded-2xl bg-indigo-600/15 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-3">
-            <UploadCloud className="w-6 h-6" />
+        {/* Limit Warning Banner */}
+        {isPageLimitReached && canUpload && (
+          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+            <div className="flex items-center gap-2.5">
+              <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+              <div>
+                <strong className="block text-white">Workspace Page Capacity Reached ({pageCount}/{maxPages} Pages)</strong>
+                <span>0 Pages space available on your current plan. Upgrade workspace plan to add more pages.</span>
+              </div>
+            </div>
+            <Link
+              to={`/workspace/${workspaceId}/plan`}
+              className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400 transition-colors inline-flex items-center gap-1.5 shrink-0"
+            >
+              <Sparkles className="w-4 h-4" /> Upgrade Plan <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
+        )}
 
-          <h3 className="text-sm font-semibold text-white">
-            Drag & Drop PDF, DOC, or DOCX files here
-          </h3>
-          <p className="text-xs text-slate-400 mt-1 mb-4">
-            Supports multiple document uploads at once (Max 15MB per file)
-          </p>
-
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors inline-flex items-center gap-2"
+        {/* Non-Admin/Owner Upload Restricted Notice */}
+        {!canUpload ? (
+          <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 text-center space-y-3 shadow-xl">
+            <div className="w-12 h-12 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+              <Lock className="w-6 h-6" />
+            </div>
+            <h3 className="text-sm font-semibold text-white">Document Uploads Restricted</h3>
+            <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+              Only Workspace <strong>Owners</strong> and <strong>Admins</strong> are permitted to add or upload documents (Default plan: 50 total pages max).
+            </p>
+          </div>
+        ) : (
+          /* Multi-File Upload Drag & Drop Dropzone */
+          <div
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+            className={`rounded-3xl border-2 border-dashed p-8 text-center transition-all ${
+              isPageLimitReached
+                ? 'opacity-60 border-slate-800 bg-slate-950 cursor-not-allowed'
+                : dragActive
+                ? 'border-indigo-500 bg-indigo-500/10'
+                : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+            }`}
           >
-            Browse Files
-          </button>
-        </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              disabled={isPageLimitReached}
+              accept=".pdf,.doc,.docx"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
+            <div className="w-12 h-12 rounded-2xl bg-indigo-600/15 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-3">
+              <UploadCloud className="w-6 h-6" />
+            </div>
+
+            <h3 className="text-sm font-semibold text-white">
+              {isPageLimitReached
+                ? '0 Pages Space Available (Upgrade Required)'
+                : 'Drag & Drop PDF, DOC, or DOCX files here'}
+            </h3>
+            <p className="text-xs text-slate-400 mt-1 mb-4">
+              {isPageLimitReached
+                ? `Limit of ${maxPages} total pages reached. Upgrade workspace plan to process more pages.`
+                : `Available space: ${availablePages} pages. Uploaded documents exceeding ${availablePages} pages will be rejected.`}
+            </p>
+
+            {!isPageLimitReached && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors inline-flex items-center gap-2"
+              >
+                Browse Files
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Selected Files Queue */}
         {selectedFiles.length > 0 && (
@@ -221,7 +308,7 @@ export default function DocumentsPage() {
               >
                 {uploading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Chunking & Indexing...
+                    <Loader2 className="w-4 h-4 animate-spin" /> Extracting Pages & Storing Vectors...
                   </>
                 ) : (
                   <>
@@ -260,8 +347,10 @@ export default function DocumentsPage() {
         {/* Indexed Documents Table */}
         <div className="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden shadow-xl">
           <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">Workspace Documents</h3>
-            <span className="text-xs text-slate-400">{documents.length} Total Documents</span>
+            <h3 className="text-sm font-semibold text-white">Indexed Documents ({docCount})</h3>
+            <span className="text-xs text-slate-400 font-mono">
+              {pageCount}/{maxPages} Total Pages Used ({availablePages} Available)
+            </span>
           </div>
 
           {loading ? (
@@ -270,7 +359,7 @@ export default function DocumentsPage() {
             </div>
           ) : documents.length === 0 ? (
             <div className="p-8 text-center text-slate-400 text-xs italic">
-              No documents uploaded yet in this workspace.
+              No documents uploaded yet in this workspace. Upload PDF/DOC files to start vector indexing.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -279,8 +368,7 @@ export default function DocumentsPage() {
                   <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
                     <th className="py-3 px-6">Document Name</th>
                     <th className="py-3 px-4">Type</th>
-                    <th className="py-3 px-4">Size</th>
-                    <th className="py-3 px-4">Chunks</th>
+                    <th className="py-3 px-4">Pages Extracted</th>
                     <th className="py-3 px-4">Status</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
@@ -295,23 +383,22 @@ export default function DocumentsPage() {
                       <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400">
                         {doc.file_type}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-400">
-                        {(doc.file_size / 1024).toFixed(1)} KB
-                      </td>
-                      <td className="py-3.5 px-4 font-medium text-indigo-300">
-                        {doc.chunk_count || 0} chunks
+                      <td className="py-3.5 px-4 font-semibold text-emerald-300 font-mono">
+                        {doc.page_count || 1} {doc.page_count === 1 ? 'page' : 'pages'}
                       </td>
                       <td className="py-3.5 px-4">
                         {getStatusBadge(doc.status)}
                       </td>
                       <td className="py-3.5 px-4 text-right">
-                        <button
-                          onClick={() => setDeleteModalDoc(doc)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors"
-                          title="Delete Document"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {canUpload && (
+                          <button
+                            onClick={() => setDeleteModalDoc(doc)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors"
+                            title="Delete Document"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -326,7 +413,7 @@ export default function DocumentsPage() {
       <ConfirmModal
         isOpen={Boolean(deleteModalDoc)}
         title="Delete Document"
-        message={`Are you sure you want to delete "${deleteModalDoc?.name}"? All associated document chunks and vector embeddings will be permanently removed.`}
+        message={`Are you sure you want to delete "${deleteModalDoc?.name}"? All associated ${deleteModalDoc?.page_count || 1} pages of vector chunks will be removed, freeing up ${deleteModalDoc?.page_count || 1} pages of space.`}
         confirmText="Delete Document"
         variant="danger"
         loading={deletingDoc}

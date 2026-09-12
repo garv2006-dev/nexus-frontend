@@ -12,6 +12,7 @@ import DocumentsPage from './pages/DocumentsPage'
 import MembersPage from './pages/MembersPage'
 import UsagePage from './pages/UsagePage'
 import WorkspaceSettingsPage from './pages/WorkspaceSettingsPage'
+import PlanPage from './pages/PlanPage'
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
                   <Route path="/workspace/:workspaceId/members" element={<MembersPage />} />
                   <Route path="/workspace/:workspaceId/usage" element={<UsagePage />} />
                   <Route path="/workspace/:workspaceId/settings" element={<WorkspaceSettingsPage />} />
+                  <Route path="/workspace/:workspaceId/plan" element={<PlanPage />} />
 
                   <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>

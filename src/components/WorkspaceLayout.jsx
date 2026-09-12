@@ -7,7 +7,8 @@ import {
   PieChart,
   Settings,
   Layers,
-  Sparkles
+  Sparkles,
+  Zap
 } from 'lucide-react'
 import Header from './Header'
 import { useWorkspace } from '../context/WorkspaceContext'
@@ -39,12 +40,15 @@ export default function WorkspaceLayout({ children }) {
     return <Navigate to={`/workspace/${workspaces[0].id}/chat`} replace />
   }
 
+  const isOwner = currentWs?.user_role === 'owner'
+
   const navItems = [
     { label: 'Chat', icon: MessageSquare, path: `/workspace/${workspaceId}/chat` },
     { label: 'Documents', icon: FileText, path: `/workspace/${workspaceId}/documents` },
     { label: 'Members', icon: Users, path: `/workspace/${workspaceId}/members` },
     { label: 'Usage', icon: PieChart, path: `/workspace/${workspaceId}/usage` },
-    { label: 'Settings', icon: Settings, path: `/workspace/${workspaceId}/settings` },
+    { label: 'Plan & Upgrades', icon: Zap, path: `/workspace/${workspaceId}/plan` },
+    ...(isOwner ? [{ label: 'Settings', icon: Settings, path: `/workspace/${workspaceId}/settings` }] : []),
   ]
 
   return (
