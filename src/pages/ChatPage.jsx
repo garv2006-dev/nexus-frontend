@@ -38,7 +38,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [openSources, setOpenSources] = useState({})
-  
+
   // Custom Delete Modal State
   const [deleteModalConv, setDeleteModalConv] = useState(null)
   const [deletingConv, setDeletingConv] = useState(false)
@@ -208,11 +208,10 @@ export default function ChatPage() {
                 <div
                   key={conv.id}
                   onClick={() => setActiveConvId(conv.id)}
-                  className={`group flex items-center justify-between px-3 py-2 rounded-md cursor-pointer text-xs transition-all ${
-                    isActive
-                      ? 'bg-indigo-600/15 border border-indigo-500/30 text-white font-medium shadow-sm'
-                      : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
-                  }`}
+                  className={`group flex items-center justify-between px-3 py-2 rounded-md cursor-pointer text-xs transition-all ${isActive
+                    ? 'bg-indigo-600/15 border border-indigo-500/30 text-white font-medium shadow-sm'
+                    : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                    }`}
                 >
                   <div className="flex items-center gap-2 truncate">
                     <MessageSquare className={`w-3.5 h-3.5 ${isActive ? 'text-indigo-400' : 'text-slate-500'}`} />
@@ -284,11 +283,10 @@ export default function ChatPage() {
                   className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} space-y-2`}
                 >
                   <div
-                    className={`max-w-3xl rounded-md p-4 text-xs sm:text-sm leading-relaxed shadow-sm ${
-                      isUser
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-slate-800/80 border border-slate-700/60 text-slate-100'
-                    }`}
+                    className={`max-w-3xl rounded-md p-4 text-xs sm:text-sm leading-relaxed shadow-sm ${isUser
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-slate-800/80 border border-slate-700/60 text-slate-100'
+                      }`}
                   >
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {msg.content}
@@ -361,21 +359,19 @@ export default function ChatPage() {
               <div className="relative flex-1">
                 <input
                   type="text"
-                  placeholder="Ask a question about your workspace documents (max 4000 chars)..."
+                  placeholder="Ask a question about your workspace documents..."
                   value={inputQuery}
                   onChange={(e) => setInputQuery(e.target.value)}
                   disabled={loading || !activeConvId}
-                  className={`w-full px-4 py-2.5 pr-20 rounded-md bg-slate-900 border ${
-                    inputQuery.length > 4000 ? 'border-red-500 text-red-200' : 'border-slate-800 text-white'
-                  } placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:opacity-50 transition-all`}
+                  className={`w-full px-4 py-2.5 pr-20 rounded-md bg-slate-900 border ${inputQuery.length > 4000 ? 'border-red-500 text-red-200' : 'border-slate-800 text-white'
+                    } placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:opacity-50 transition-all`}
                 />
-                <span
-                  className={`absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-mono select-none ${
-                    inputQuery.length > 4000 ? 'text-red-400 font-bold' : 'text-slate-500'
-                  }`}
+                {/* <span
+                  className={`absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-mono select-none ${inputQuery.length > 4000 ? 'text-red-400 font-bold' : 'text-slate-500'
+                    }`}
                 >
                   {inputQuery.length}/4000
-                </span>
+                </span> */}
               </div>
               <button
                 type="submit"
