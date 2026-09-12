@@ -37,9 +37,6 @@ export default function ChatPage() {
   const [inputQuery, setInputQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [openSources, setOpenSources] = useState({})
-
-  // Custom Delete Modal State
   const [deleteModalConv, setDeleteModalConv] = useState(null)
   const [deletingConv, setDeletingConv] = useState(false)
 
@@ -179,10 +176,6 @@ export default function ChatPage() {
     }
   }
 
-  const toggleSourceView = (msgId) => {
-    setOpenSources(prev => ({ ...prev, [msgId]: !prev[msgId] }))
-  }
-
   return (
     <WorkspaceLayout>
       <div className="h-[calc(100vh-6.5rem)] flex flex-col md:flex-row gap-4 overflow-hidden">
@@ -266,7 +259,7 @@ export default function ChatPage() {
                 <div className="space-y-1.5">
                   <h3 className="text-sm font-semibold text-white">Ask your workspace documents</h3>
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    Type a question below. The system will perform hybrid vector and keyword search across your workspace's indexed PDF, DOC, and DOCX files and generate an answer with cited sources.
+                    Type a question below. The system will perform hybrid vector and keyword search across your workspace's indexed PDF, DOC, and DOCX files and generate an answer.
                   </p>
                 </div>
               </div>
@@ -274,8 +267,6 @@ export default function ChatPage() {
 
             {messages.map((msg) => {
               const isUser = msg.role === 'user'
-              const sources = Array.isArray(msg.sources) ? msg.sources : (typeof msg.sources === 'string' ? JSON.parse(msg.sources || '[]') : [])
-              const showSources = openSources[msg.id]
 
               return (
                 <div
@@ -293,46 +284,7 @@ export default function ChatPage() {
                     </ReactMarkdown>
                   </div>
 
-                  {/* Citation Sources Cards for Assistant Messages */}
-                  {!isUser && sources.length > 0 && (
-                    <div className="max-w-3xl w-full">
-                      <button
-                        onClick={() => toggleSourceView(msg.id)}
-                        className="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1.5 py-1 px-2 rounded-md hover:bg-slate-800/50 transition-colors"
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>Sources ({sources.length} cited)</span>
-                        <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showSources ? 'rotate-180' : ''}`} />
-                      </button>
 
-                      {showSources && (
-                        <div className="mt-2 space-y-2 animate-in fade-in duration-200">
-                          {sources.map((src, idx) => (
-                            <div
-                              key={idx}
-                              className="p-3 rounded-md bg-slate-950 border border-slate-800 text-xs space-y-1"
-                            >
-                              <div className="flex items-center justify-between text-slate-300 font-semibold">
-                                <div className="flex items-center gap-1.5 truncate">
-                                  <FileText className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                                  <span className="truncate">{src.document_name}</span>
-                                  <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded-md">
-                                    Page {src.page_number}
-                                  </span>
-                                </div>
-                                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                                  Score: {src.score}
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-slate-400 italic line-clamp-2 pl-5">
-                                "{src.content_snippet}"
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
               )
             })}
