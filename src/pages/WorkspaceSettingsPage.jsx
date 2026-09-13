@@ -6,6 +6,7 @@ import {
   Save,
   Trash2,
   AlertTriangle,
+  AlertCircle,
   Users,
   Zap,
   ShieldAlert,
@@ -44,11 +45,12 @@ export default function WorkspaceSettingsPage() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
 
   const isOwner = activeWorkspace?.user_role === 'owner'
+  const isAdminOrOwner = activeWorkspace?.user_role === 'owner' || activeWorkspace?.user_role === 'admin'
   const planType = activeWorkspace?.plan_type || 'starter'
   const planName = planType.charAt(0).toUpperCase() + planType.slice(1)
   const userRole = activeWorkspace?.user_role
     ? activeWorkspace.user_role.charAt(0).toUpperCase() + activeWorkspace.user_role.slice(1)
-    : 'Owner'
+    : 'Member'
 
   const maxPages = activeWorkspace?.max_pages ?? 50
   const dailyTokenLimit = activeWorkspace?.daily_token_limit ?? 50000
@@ -83,15 +85,15 @@ export default function WorkspaceSettingsPage() {
     }
   }, [workspaceId])
 
-  // Redirect non-owners away from Settings page
+  // Redirect non-owners/non-admins away from Settings page
   useEffect(() => {
-    if (activeWorkspace && activeWorkspace.user_role !== 'owner') {
+    if (activeWorkspace && activeWorkspace.user_role !== 'owner' && activeWorkspace.user_role !== 'admin') {
       navigate(`/workspace/${workspaceId}/chat`, { replace: true })
     }
   }, [activeWorkspace, workspaceId, navigate])
 
   const handleCancelSubscription = async () => {
-    if (!isOwner || canceling) return
+    if (!isAdminOrOwner || canceling) return
     try {
       setCanceling(true)
       setError(null)
@@ -113,7 +115,7 @@ export default function WorkspaceSettingsPage() {
 
   const handleSaveSettings = async (e) => {
     e.preventDefault()
-    if (!name.trim() || saving || !isOwner) return
+    if (!name.trim() || saving || !isAdminOrOwner) return
 
     try {
       setSaving(true)
@@ -150,7 +152,7 @@ export default function WorkspaceSettingsPage() {
     }
   }
 
-  if (!isOwner) {
+  if (!isAdminOrOwner) {
     return null
   }
 
@@ -164,7 +166,7 @@ export default function WorkspaceSettingsPage() {
               <Settings className="w-5 h-5 text-indigo-400" /> Workspace Settings
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Manage workspace name, resource quotas, and plan tier (Owner Only).
+              Manage workspace name, resource quotas, and plan tier.
             </p>
           </div>
         </div>
@@ -281,23 +283,25 @@ export default function WorkspaceSettingsPage() {
           </div>
         </form>
 
-        {/* Danger Zone */}
-        <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-5 space-y-3.5 shadow-lg">
-          <div className="flex items-center gap-2 text-red-400 font-semibold text-xs sm:text-sm">
-            <ShieldAlert className="w-4 h-4" /> Danger Zone
+        {/* Danger Zone (Owner Only) */}
+        {isOwner && (
+          <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-5 space-y-3.5 shadow-lg">
+            <div className="flex items-center gap-2 text-red-400 font-semibold text-xs sm:text-sm">
+              <ShieldAlert className="w-4 h-4" /> Danger Zone
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Deleting this workspace will permanently erase all associated documents, vector embeddings, chunk indices, conversation history, and usage statistics. This action cannot be undone.
+            </p>
+            <div>
+              <button
+                onClick={() => setDeleteModalOpen(true)}
+                className="px-3.5 py-2 rounded-md bg-red-600 hover:bg-red-500 text-white text-xs font-semibold shadow-md shadow-red-600/20 transition-all flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" /> Delete Workspace
+              </button>
+            </div>
           </div>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            Deleting this workspace will permanently erase all associated documents, vector embeddings, chunk indices, conversation history, and usage statistics. This action cannot be undone.
-          </p>
-          <div>
-            <button
-              onClick={() => setDeleteModalOpen(true)}
-              className="px-3.5 py-2 rounded-md bg-red-600 hover:bg-red-500 text-white text-xs font-semibold shadow-md shadow-red-600/20 transition-all flex items-center gap-2"
-            >
-              <Trash2 className="w-4 h-4" /> Delete Workspace
-            </button>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Custom Cancel Subscription Confirmation Modal */}
