@@ -45,9 +45,10 @@ async function handle(res) {
     }
     let defaultMsg = `Request failed with status ${res.status}`
     if (res.status === 404) {
-      defaultMsg = `Endpoint not found (404). Ensure VITE_API_BASE_URL points to backend.`
+      defaultMsg = `Payment endpoint not found (404). Ensure backend server is running and updated.`
     }
-    const msg = (detail && typeof detail.detail === 'string' ? detail.detail : null) ||
+    const rawDetail = detail && typeof detail.detail === 'string' ? detail.detail : null
+    const msg = (rawDetail && rawDetail.toLowerCase() !== 'not found' ? rawDetail : null) ||
                 (detail && detail.detail && detail.detail.message) ||
                 defaultMsg
     const err = new Error(msg)
@@ -247,3 +248,40 @@ export async function getWorkspaceUsage(token, workspaceId) {
   })
   return handle(res)
 }
+
+// --- Stripe Payments ----------------------------------------------------
+
+export async function createCheckoutSession(token, workspaceId, planId) {
+  const res = await safeFetch(`${API_BASE}/api/payments/create-checkout-session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+    body: JSON.stringify({ workspace_id: workspaceId, plan_id: planId }),
+  })
+  return handle(res)
+}
+
+export async function getPaymentStatus(token, workspaceId) {
+  const res = await safeFetch(`${API_BASE}/api/payments/status/${workspaceId}`, {
+    headers: authHeaders(token),
+  })
+  return handle(res)
+}
+
+export async function verifyCheckoutSession(token, workspaceId, sessionId) {
+  const res = await safeFetch(`${API_BASE}/api/payments/verify-checkout-session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+    body: JSON.stringify({ workspace_id: workspaceId, session_id: sessionId }),
+  })
+  return handle(res)
+}
+
+export async function cancelSubscription(token, workspaceId) {
+  const res = await safeFetch(`${API_BASE}/api/payments/cancel-subscription`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+    body: JSON.stringify({ workspace_id: workspaceId }),
+  })
+  return handle(res)
+}
+
