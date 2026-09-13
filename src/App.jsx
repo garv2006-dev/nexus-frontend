@@ -13,6 +13,7 @@ import MembersPage from './pages/MembersPage'
 import UsagePage from './pages/UsagePage'
 import WorkspaceSettingsPage from './pages/WorkspaceSettingsPage'
 import PlanPage from './pages/PlanPage'
+import ProfilePage from './pages/ProfilePage'
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/invitations" element={<InvitationsPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
 
                   {/* Workspace Sub-Routes */}
                   <Route
@@ -46,6 +48,7 @@ export default function App() {
                   <Route path="/workspace/:workspaceId/usage" element={<UsagePage />} />
                   <Route path="/workspace/:workspaceId/settings" element={<WorkspaceSettingsPage />} />
                   <Route path="/workspace/:workspaceId/plan" element={<PlanPage />} />
+                  <Route path="/workspace/:workspaceId/profile" element={<ProfilePage />} />
 
                   <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
