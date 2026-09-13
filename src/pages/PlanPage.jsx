@@ -264,64 +264,7 @@ export default function PlanPage() {
           </div>
         )}
 
-        {/* Current Subscription Dashboard Banner */}
-        {paymentDetails && (
-          <div className="p-5 rounded-lg bg-slate-900 border border-slate-800 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
-              <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Active Subscription Summary
-                </span>
-                <div className="flex items-center gap-3 mt-1">
-                  <h2 className="text-lg font-bold text-white tracking-tight">
-                    {paymentDetails.plan_name}
-                  </h2>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                    paymentDetails.subscription_status === 'active'
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                      : paymentDetails.subscription_status === 'canceling'
-                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                      : 'bg-slate-800 text-slate-400 border border-slate-700'
-                  }`}>
-                    Status: {paymentDetails.subscription_status}
-                  </span>
-                </div>
-              </div>
 
-              {currentPlan !== 'starter' && paymentDetails.subscription_status === 'active' && isOwner && (
-                <button
-                  onClick={() => setCancelModalOpen(true)}
-                  disabled={canceling}
-                  className="px-3.5 py-2 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all inline-flex items-center gap-2 self-start sm:self-auto"
-                >
-                  {canceling ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                  Cancel Subscription
-                </button>
-              )}
-            </div>
-
-            <div className="grid sm:grid-cols-3 gap-4 text-xs">
-              <div className="p-3 rounded-md bg-slate-950/60 border border-slate-800/60 flex items-center justify-between">
-                <span className="text-slate-400 flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-amber-400" /> Daily Token Budget:
-                </span>
-                <span className="font-mono font-bold text-white">{paymentDetails.daily_token_limit.toLocaleString()}</span>
-              </div>
-              <div className="p-3 rounded-md bg-slate-950/60 border border-slate-800/60 flex items-center justify-between">
-                <span className="text-slate-400 flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-emerald-400" /> Page Capacity:
-                </span>
-                <span className="font-mono font-bold text-white">{paymentDetails.max_pages} Pages</span>
-              </div>
-              <div className="p-3 rounded-md bg-slate-950/60 border border-slate-800/60 flex items-center justify-between">
-                <span className="text-slate-400 flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-indigo-400" /> Member Limit:
-                </span>
-                <span className="font-mono font-bold text-white">{paymentDetails.max_members} Seats</span>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Pricing Cards Grid */}
         <div className="grid md:grid-cols-3 gap-5">
