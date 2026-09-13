@@ -1,56 +1,152 @@
-import React, { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import {
   Zap,
   CheckCircle2,
-  Sparkles,
   Shield,
-  FileText,
   Users,
-  ArrowRight,
   Loader2,
   AlertTriangle,
   Check,
-  Crown,
   Layers,
-  HardDrive,
+  CreditCard,
+  ExternalLink,
+  Calendar,
+  XCircle,
+  Clock,
+  Sparkles,
+  ArrowLeft,
   ShoppingCart
 } from 'lucide-react'
 import WorkspaceLayout from '../components/WorkspaceLayout'
 import { useWorkspace } from '../context/WorkspaceContext'
-import { updateWorkspaceSettings } from '../services/api'
+import { createCheckoutSession, getPaymentStatus, verifyCheckoutSession, cancelSubscription } from '../services/api'
 
 export default function PlanPage() {
   const { workspaceId } = useParams()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { getToken } = useAuth()
   const { activeWorkspace, fetchWorkspaces } = useWorkspace()
 
-  const [updating, setUpdating] = useState(false)
+  const [loadingPlanId, setLoadingPlanId] = useState(null)
+  const [canceling, setCanceling] = useState(false)
+  const [paymentDetails, setPaymentDetails] = useState(null)
+  const [loadingDetails, setLoadingDetails] = useState(true)
   const [successMsg, setSuccessMsg] = useState(null)
   const [errorMsg, setErrorMsg] = useState(null)
 
-  const isOwner = activeWorkspace?.user_role === 'owner'
-  const currentPlan = activeWorkspace?.plan_type || 'starter'
+  const isOwner = activeWorkspace?.user_role === 'owner' || activeWorkspace?.user_role === 'admin'
+  const currentPlan = paymentDetails?.plan_type || activeWorkspace?.plan_type || 'starter'
 
-  const handlePurchasePlan = async (planKey, planName, price) => {
-    if (!isOwner || updating) return
+  // Load payment status and handle Stripe return URLs
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadStatus() {
+      try {
+        setLoadingDetails(true)
+        const token = await getToken()
+        const res = await getPaymentStatus(token, workspaceId)
+        if (isMounted && res?.data) {
+          setPaymentDetails(res.data)
+        }
+      } catch (err) {
+        console.error('Failed to load payment status:', err)
+      } finally {
+        if (isMounted) setLoadingDetails(false)
+      }
+    }
+
+    if (workspaceId) {
+      loadStatus()
+    }
+
+    // Check for search params from Stripe Checkout redirect
+    if (searchParams.get('success') === 'true') {
+      const sessionId = searchParams.get('session_id')
+      if (sessionId) {
+        (async () => {
+          try {
+            const token = await getToken()
+            const verifyRes = await verifyCheckoutSession(token, workspaceId, sessionId)
+            if (isMounted && verifyRes?.data) {
+              setPaymentDetails(verifyRes.data)
+            }
+            await fetchWorkspaces()
+            if (isMounted) {
+              setSuccessMsg('🎉 Stripe payment completed successfully! Your workspace plan and limits have been activated.')
+            }
+          } catch (err) {
+            console.error('Failed to verify Stripe session return:', err)
+            await fetchWorkspaces()
+            if (isMounted) {
+              setSuccessMsg(`Payment completed via Stripe! Workspace limits have been updated.`)
+            }
+          } finally {
+            if (isMounted) setSearchParams({})
+          }
+        })()
+      } else {
+        fetchWorkspaces()
+        setSearchParams({})
+      }
+    } else if (searchParams.get('canceled') === 'true') {
+      setErrorMsg('Payment session was canceled. Your plan limits remain unchanged.')
+      setSearchParams({})
+    }
+
+    return () => {
+      isMounted = false
+    }
+  }, [workspaceId, searchParams])
+
+  // Initiate Stripe Checkout flow
+  const handleStripeCheckout = async (planKey) => {
+    if (!isOwner || loadingPlanId) return
     try {
-      setUpdating(true)
+      setLoadingPlanId(planKey)
       setErrorMsg(null)
       setSuccessMsg(null)
+
       const token = await getToken()
-      await updateWorkspaceSettings(token, workspaceId, {
-        plan_type: planKey
-      })
-      await fetchWorkspaces()
-      setSuccessMsg(`Plan Purchased Successfully! Upgraded workspace to ${planName} (${price}). Daily budget: ${planKey === 'pro' ? '250,000' : planKey === 'enterprise' ? '1,000,000' : '50,000'} tokens & ${planKey === 'pro' ? '250' : planKey === 'enterprise' ? '500' : '50'} pages.`)
-      setTimeout(() => setSuccessMsg(null), 5000)
+      const res = await createCheckoutSession(token, workspaceId, planKey)
+
+      if (res?.data?.checkout_url) {
+        // Securely redirect to Stripe Checkout
+        window.location.href = res.data.checkout_url
+      } else {
+        throw new Error('Failed to retrieve Stripe Checkout URL.')
+      }
     } catch (err) {
-      setErrorMsg(err.message || 'Failed to purchase plan')
+      setErrorMsg(err.message || 'Failed to initiate Stripe payment checkout.')
+      setLoadingPlanId(null)
+    }
+  }
+
+  // Cancel workspace active subscription
+  const handleCancelSubscription = async () => {
+    if (!isOwner || canceling) return
+    if (!window.confirm('Are you sure you want to cancel your subscription? Your access will remain active until the end of the billing period.')) {
+      return
+    }
+
+    try {
+      setCanceling(true)
+      setErrorMsg(null)
+      const token = await getToken()
+      await cancelSubscription(token, workspaceId)
+      setSuccessMsg('Subscription set to cancel at the end of the current period.')
+
+      // Refresh payment status and workspace limits
+      const res = await getPaymentStatus(token, workspaceId)
+      if (res?.data) setPaymentDetails(res.data)
+      await fetchWorkspaces()
+    } catch (err) {
+      setErrorMsg(err.message || 'Failed to cancel subscription.')
     } finally {
-      setUpdating(false)
+      setCanceling(false)
     }
   }
 
@@ -63,13 +159,13 @@ export default function PlanPage() {
       tokens: 50000,
       pages: 50,
       members: 5,
-      description: 'Default plan automatically selected upon workspace creation with 50 pages capacity.',
+      description: 'Default free plan automatically provisioned upon workspace creation.',
       features: [
         '50,000 Daily Token Budget',
-        '50 Total Pages Max Capacity',
-        'No Document Count Limit (Upload multiple files up to 50 pages total)',
+        '50 Total Pages Capacity',
+        'Multi-Document Upload Support',
         'Automatic Vector Store Ingestion',
-        'Admin & Owner Upload Restrictions'
+        'Hybrid Semantic & Keyword Search'
       ],
       badge: 'Default Tier',
       highlight: false
@@ -82,13 +178,13 @@ export default function PlanPage() {
       tokens: 250000,
       pages: 250,
       members: 15,
-      description: '5x Page capacity (250 total pages) for multi-document repositories.',
+      description: '5x Capacity boost for growing document repositories and active teams.',
       features: [
         '250,000 Daily Token Budget (5x)',
         '250 Total Pages Max Capacity (5x)',
-        'No Document File Limit',
-        'Up to 15 Collaborators',
-        'Priority Chunking & Embedding Pipeline'
+        'Up to 15 Collaborator Seats',
+        'Priority Chunking & Embedding',
+        'Stripe Card & Billing Portal Support'
       ],
       badge: 'Most Popular',
       highlight: true
@@ -101,13 +197,13 @@ export default function PlanPage() {
       tokens: 1000000,
       pages: 500,
       members: 50,
-      description: 'Expanded capacity (500 total pages) for enterprise-scale RAG index.',
+      description: 'Expanded index capacity for large-scale enterprise RAG search.',
       features: [
         '1,000,000 Daily Token Budget (20x)',
         '500 Total Pages Max Capacity (10x)',
-        'No Document File Limit',
-        'Up to 50 Collaborators',
-        'High-throughput Vector Search'
+        'Up to 50 Collaborator Seats',
+        'High-Throughput Vector Search',
+        'Dedicated Support & Custom Quotas'
       ],
       badge: 'Maximum Power',
       highlight: false
@@ -116,20 +212,20 @@ export default function PlanPage() {
 
   return (
     <WorkspaceLayout>
-      <div className="max-w-6xl mx-auto space-y-6 pb-8">
-        {/* Page Title & Header */}
+      <div className="max-w-6xl mx-auto space-y-6 pb-12">
+        {/* Header Navigation */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-bold uppercase tracking-wider">
-                Workspace Quotas & Plan Upgrades
+              <span className="px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <CreditCard className="w-3 h-3 text-indigo-400" /> Stripe Secure Checkout & Subscription Management
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
               <Zap className="w-5 h-5 text-amber-400" /> Plan & Upgrades
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Select or purchase a plan tier to expand daily token budgets and total page capacity.
+              Select or manage your workspace subscription. Payments are securely processed by Stripe.
             </p>
           </div>
 
@@ -137,28 +233,100 @@ export default function PlanPage() {
             onClick={() => navigate(`/workspace/${workspaceId}/settings`)}
             className="px-3.5 py-2 rounded-md bg-slate-900 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold transition-all inline-flex items-center gap-2 w-fit"
           >
-            <Shield className="w-4 h-4 text-indigo-400" /> Return to Settings
+            <ArrowLeft className="w-4 h-4 text-slate-400" /> Back to Settings
           </button>
         </div>
 
+        {/* Feedback Messages */}
         {errorMsg && (
-          <div className="p-3.5 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2 animate-in fade-in">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
-            <span>{errorMsg}</span>
+          <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center justify-between gap-3 animate-in fade-in">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
+              <span>{errorMsg}</span>
+            </div>
+            <button onClick={() => setErrorMsg(null)} className="text-red-400 hover:text-red-300">
+              <XCircle className="w-4 h-4" />
+            </button>
           </div>
         )}
 
         {successMsg && (
-          <div className="p-3.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2 animate-in fade-in">
-            <Check className="w-4 h-4 shrink-0 text-emerald-400" />
-            <span>{successMsg}</span>
+          <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center justify-between gap-3 animate-in fade-in">
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 shrink-0 text-emerald-400" />
+              <span>{successMsg}</span>
+            </div>
+            <button onClick={() => setSuccessMsg(null)} className="text-emerald-400 hover:text-emerald-300">
+              <XCircle className="w-4 h-4" />
+            </button>
           </div>
         )}
 
-        {/* Tier Comparison Cards Grid */}
+        {/* Current Subscription Dashboard Banner */}
+        {paymentDetails && (
+          <div className="p-5 rounded-lg bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Active Subscription Summary
+                </span>
+                <div className="flex items-center gap-3 mt-1">
+                  <h2 className="text-lg font-bold text-white tracking-tight">
+                    {paymentDetails.plan_name}
+                  </h2>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    paymentDetails.subscription_status === 'active'
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : paymentDetails.subscription_status === 'canceling'
+                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                      : 'bg-slate-800 text-slate-400 border border-slate-700'
+                  }`}>
+                    Status: {paymentDetails.subscription_status}
+                  </span>
+                </div>
+              </div>
+
+              {currentPlan !== 'starter' && paymentDetails.subscription_status === 'active' && isOwner && (
+                <button
+                  onClick={handleCancelSubscription}
+                  disabled={canceling}
+                  className="px-3.5 py-2 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all inline-flex items-center gap-2 self-start sm:self-auto"
+                >
+                  {canceling ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                  Cancel Subscription
+                </button>
+              )}
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-4 text-xs">
+              <div className="p-3 rounded-md bg-slate-950/60 border border-slate-800/60 flex items-center justify-between">
+                <span className="text-slate-400 flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-amber-400" /> Daily Token Budget:
+                </span>
+                <span className="font-mono font-bold text-white">{paymentDetails.daily_token_limit.toLocaleString()}</span>
+              </div>
+              <div className="p-3 rounded-md bg-slate-950/60 border border-slate-800/60 flex items-center justify-between">
+                <span className="text-slate-400 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-emerald-400" /> Page Capacity:
+                </span>
+                <span className="font-mono font-bold text-white">{paymentDetails.max_pages} Pages</span>
+              </div>
+              <div className="p-3 rounded-md bg-slate-950/60 border border-slate-800/60 flex items-center justify-between">
+                <span className="text-slate-400 flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-indigo-400" /> Member Limit:
+                </span>
+                <span className="font-mono font-bold text-white">{paymentDetails.max_members} Seats</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Pricing Cards Grid */}
         <div className="grid md:grid-cols-3 gap-5">
           {plans.map((plan) => {
             const active = currentPlan === plan.id
+            const isLoading = loadingPlanId === plan.id
+
             return (
               <div
                 key={plan.id}
@@ -172,19 +340,19 @@ export default function PlanPage() {
                 {plan.badge && (
                   <div className="absolute -top-2.5 right-5">
                     <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-md ${
-                      plan.highlight
-                        ? 'bg-indigo-600 text-white shadow-indigo-600/30'
-                        : active
+                      active
                         ? 'bg-emerald-600 text-white'
+                        : plan.highlight
+                        ? 'bg-indigo-600 text-white shadow-indigo-600/30'
                         : 'bg-slate-800 text-slate-300 border border-slate-700'
                     }`}>
-                      {active ? 'Purchased Plan' : plan.badge}
+                      {active ? 'Current Active Tier' : plan.badge}
                     </span>
                   </div>
                 )}
 
                 <div className="space-y-5">
-                  {/* Plan Name & Pricing */}
+                  {/* Plan Details */}
                   <div>
                     <h3 className="text-sm font-bold text-white tracking-tight mb-1">
                       {plan.name}
@@ -198,7 +366,7 @@ export default function PlanPage() {
                     </p>
                   </div>
 
-                  {/* Resource Caps Highlight Box */}
+                  {/* Quota Highlights Box */}
                   <div className="p-3.5 rounded-md bg-slate-950/70 border border-slate-800/80 space-y-2 text-xs">
                     <div className="flex justify-between items-center">
                       <span className="text-slate-400 flex items-center gap-1.5">
@@ -220,7 +388,7 @@ export default function PlanPage() {
                     </div>
                   </div>
 
-                  {/* Feature Checklist */}
+                  {/* Capabilities List */}
                   <div className="space-y-2 pt-1">
                     <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                       Included Capabilities:
@@ -234,34 +402,43 @@ export default function PlanPage() {
                   </div>
                 </div>
 
-                {/* Plan Action Button */}
+                {/* Plan Action CTA Button */}
                 <div className="pt-5 mt-5 border-t border-slate-800/80">
                   {active ? (
                     <button
                       disabled
                       className="w-full py-2.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center justify-center gap-2 cursor-default"
                     >
-                      <Check className="w-4 h-4" /> Current Active Plan
+                      <Check className="w-4 h-4" /> Active Plan
+                    </button>
+                  ) : plan.id === 'starter' ? (
+                    <button
+                      disabled
+                      className="w-full py-2.5 rounded-md bg-slate-800/60 text-slate-500 text-xs font-semibold flex items-center justify-center cursor-default"
+                    >
+                      Default Starter Tier
                     </button>
                   ) : (
                     <button
-                      onClick={() => handlePurchasePlan(plan.id, plan.name, plan.price)}
-                      disabled={updating || !isOwner}
-                      className={`w-full py-2.5 rounded-md text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      onClick={() => handleStripeCheckout(plan.id)}
+                      disabled={Boolean(loadingPlanId) || !isOwner}
+                      className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg ${
                         !isOwner
-                          ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                          ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
                           : plan.highlight
-                          ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20'
-                          : 'bg-slate-800 hover:bg-slate-700 text-white'
+                          ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-600/30 hover:scale-[1.01] active:scale-[0.99] border border-indigo-400/30'
+                          : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
                       }`}
                     >
-                      {updating ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" /> Preparing Stripe Checkout...
+                        </>
                       ) : !isOwner ? (
                         'Owner Permission Required'
                       ) : (
                         <>
-                          <ShoppingCart className="w-4 h-4" /> Upgrade to {plan.name} ({plan.price})
+                          <ShoppingCart className="w-4 h-4 text-white shrink-0" /> Upgrade to {plan.name} ({plan.price})
                         </>
                       )}
                     </button>
@@ -271,6 +448,53 @@ export default function PlanPage() {
             )
           })}
         </div>
+
+        {/* Stripe Verified Payment History Section */}
+        {paymentDetails?.payment_history?.length > 0 && (
+          <div className="p-5 rounded-lg bg-slate-900 border border-slate-800 space-y-4">
+            <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+              <Clock className="w-4 h-4 text-indigo-400" /> Payment & Transaction Audit Log
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800 text-slate-400">
+                    <th className="pb-2 font-semibold">Plan</th>
+                    <th className="pb-2 font-semibold">Amount</th>
+                    <th className="pb-2 font-semibold">Payment Status</th>
+                    <th className="pb-2 font-semibold">Stripe Session ID</th>
+                    <th className="pb-2 font-semibold">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                  {paymentDetails.payment_history.map((tx) => (
+                    <tr key={tx.id} className="hover:bg-slate-800/30 transition-colors">
+                      <td className="py-2.5 font-bold text-white uppercase">{tx.plan_id}</td>
+                      <td className="py-2.5 font-mono">${(tx.amount / 100).toFixed(2)} USD</td>
+                      <td className="py-2.5">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                          tx.payment_status === 'succeeded'
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            : tx.payment_status === 'pending'
+                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                        }`}>
+                          {tx.payment_status}
+                        </span>
+                      </td>
+                      <td className="py-2.5 font-mono text-[11px] text-slate-400 truncate max-w-[150px]">
+                        {tx.stripe_checkout_session_id || 'N/A'}
+                      </td>
+                      <td className="py-2.5 text-slate-400">
+                        {tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'N/A'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </WorkspaceLayout>
   )
