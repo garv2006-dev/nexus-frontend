@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { UserButton } from '@clerk/clerk-react'
+import UserMenu from './UserMenu'
 import {
   Bell,
   Sparkles,
@@ -47,16 +47,9 @@ export default function Header() {
           )}
         </Link>
 
-        {/* User Avatar Button */}
+        {/* User Avatar Menu */}
         <div className="pl-1">
-          <UserButton
-            afterSignOutUrl="/login"
-            appearance={{
-              elements: {
-                avatarBox: 'w-8 h-8 rounded-md ring-1 ring-indigo-500/30'
-              }
-            }}
-          />
+          <UserMenu />
         </div>
       </div>
     </header>
