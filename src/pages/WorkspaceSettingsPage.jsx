@@ -18,12 +18,13 @@ import {
   Crown,
   CheckCircle2,
   Layers,
-  HardDrive
+  HardDrive,
+  XCircle
 } from 'lucide-react'
 import WorkspaceLayout from '../components/WorkspaceLayout'
 import ConfirmModal from '../components/ConfirmModal'
 import { useWorkspace } from '../context/WorkspaceContext'
-import { updateWorkspaceSettings, deleteWorkspace } from '../services/api'
+import { updateWorkspaceSettings, deleteWorkspace, getPaymentStatus, cancelSubscription } from '../services/api'
 
 export default function WorkspaceSettingsPage() {
   const { workspaceId } = useParams()
@@ -37,6 +38,10 @@ export default function WorkspaceSettingsPage() {
   const [error, setError] = useState(null)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+
+  const [paymentDetails, setPaymentDetails] = useState(null)
+  const [canceling, setCanceling] = useState(false)
+  const [cancelModalOpen, setCancelModalOpen] = useState(false)
 
   const isOwner = activeWorkspace?.user_role === 'owner'
   const planType = activeWorkspace?.plan_type || 'starter'
@@ -56,12 +61,55 @@ export default function WorkspaceSettingsPage() {
     }
   }, [activeWorkspace])
 
+  // Load active subscription status details
+  useEffect(() => {
+    let isMounted = true
+    async function loadStatus() {
+      try {
+        const token = await getToken()
+        const res = await getPaymentStatus(token, workspaceId)
+        if (isMounted && res?.data) {
+          setPaymentDetails(res.data)
+        }
+      } catch (err) {
+        console.error('Failed to load workspace subscription status:', err)
+      }
+    }
+    if (workspaceId) {
+      loadStatus()
+    }
+    return () => {
+      isMounted = false
+    }
+  }, [workspaceId])
+
   // Redirect non-owners away from Settings page
   useEffect(() => {
     if (activeWorkspace && activeWorkspace.user_role !== 'owner') {
       navigate(`/workspace/${workspaceId}/chat`, { replace: true })
     }
   }, [activeWorkspace, workspaceId, navigate])
+
+  const handleCancelSubscription = async () => {
+    if (!isOwner || canceling) return
+    try {
+      setCanceling(true)
+      setError(null)
+      const token = await getToken()
+      await cancelSubscription(token, workspaceId)
+      setSavedSuccess(true)
+      setTimeout(() => setSavedSuccess(false), 3000)
+
+      const res = await getPaymentStatus(token, workspaceId)
+      if (res?.data) setPaymentDetails(res.data)
+      await fetchWorkspaces()
+    } catch (err) {
+      setError(err.message || 'Failed to cancel subscription.')
+    } finally {
+      setCanceling(false)
+      setCancelModalOpen(false)
+    }
+  }
 
   const handleSaveSettings = async (e) => {
     e.preventDefault()
@@ -135,73 +183,70 @@ export default function WorkspaceSettingsPage() {
           </div>
         )}
 
-        {/* Resource Quotas Banner */}
-        <div className="rounded-lg bg-[#0b0f19] border border-slate-800 p-5 sm:p-6 shadow-xl space-y-5">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-            {/* Left Column */}
-            <div className="space-y-2.5 flex-1">
-              <div className="flex items-center gap-2.5">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-indigo-950/90 border border-indigo-500/40 text-indigo-300 text-xs font-semibold shadow-sm">
-                  <Crown className="w-3.5 h-3.5 text-amber-400" />
-                  Active Plan: {planName}
-                </span>
-                <span className="text-slate-300 text-xs font-semibold">
-                  (Role: <strong className="text-white">{userRole}</strong>)
-                </span>
-              </div>
-
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                  <span className="text-white">{activeWorkspace?.name || 'Workspace'}</span> Resource Quotas
+        {/* Active Subscription Summary Banner */}
+        <div className="p-5 sm:p-6 rounded-lg bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                ACTIVE SUBSCRIPTION SUMMARY
+              </span>
+              <div className="flex items-center gap-3 mt-1">
+                <h2 className="text-lg font-bold text-white tracking-tight">
+                  {paymentDetails?.plan_name || `${planName} Plan`}
                 </h2>
-                <p className="text-xs text-slate-400 mt-1.5 leading-relaxed max-w-2xl">
-                  Page Limit: <strong className="text-slate-200">{maxPages} Pages Total</strong>. Currently using <strong className="text-slate-200">{pageCount} pages</strong> ({availablePages} pages space available). Daily token budget is <strong className="text-slate-200">{dailyTokenLimit.toLocaleString()} tokens/day</strong>.
-                </p>
-              </div>
-
-              <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={() => navigate(`/workspace/${workspaceId}/plan`)}
-                  className="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all inline-flex items-center gap-1.5"
-                >
-                  <Sparkles className="w-4 h-4" /> Upgrade Plan <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                  (paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'active'
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : (paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'canceling'
+                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                    : 'bg-slate-800 text-slate-400 border border-slate-700'
+                }`}>
+                  STATUS: {(paymentDetails?.subscription_status || activeWorkspace?.subscription_status || 'active').toUpperCase()}
+                </span>
               </div>
             </div>
 
-            {/* Right Column: Quota Stats Box */}
-            <div className="bg-[#070a12] border border-slate-800/80 rounded-md p-4 sm:p-5 shadow-inner flex items-center justify-around gap-5 sm:gap-7 shrink-0">
-              <div className="text-center space-y-1">
-                <span className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
-                  DAILY TOKENS
-                </span>
-                <span className="text-lg sm:text-xl font-extrabold text-amber-400 font-mono tracking-tight">
-                  {dailyTokenLimit.toLocaleString()}
-                </span>
-              </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => navigate(`/workspace/${workspaceId}/plan`)}
+                className="px-3.5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all inline-flex items-center gap-1.5"
+              >
+                <Sparkles className="w-4 h-4" /> Upgrade Plan <ArrowRight className="w-3.5 h-3.5" />
+              </button>
 
-              <div className="h-9 w-px bg-slate-800/80"></div>
+              {planType !== 'starter' && (paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'active' && isOwner && (
+                <button
+                  type="button"
+                  onClick={() => setCancelModalOpen(true)}
+                  disabled={canceling}
+                  className="px-3.5 py-2 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all inline-flex items-center gap-2"
+                >
+                  {canceling ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                  Cancel Subscription
+                </button>
+              )}
+            </div>
+          </div>
 
-              <div className="text-center space-y-1">
-                <span className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
-                  PAGE CAPACITY
-                </span>
-                <span className="text-lg sm:text-xl font-extrabold text-emerald-400 font-mono tracking-tight">
-                  {pageCount} / {maxPages} Used
-                </span>
-              </div>
-
-              <div className="h-9 w-px bg-slate-800/80"></div>
-
-              <div className="text-center space-y-1">
-                <span className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
-                  AVAILABLE SPACE
-                </span>
-                <span className="text-lg sm:text-xl font-extrabold text-indigo-400 font-mono tracking-tight">
-                  {availablePages} Pages
-                </span>
-              </div>
+          <div className="grid sm:grid-cols-3 gap-4 text-xs">
+            <div className="p-3.5 rounded-md bg-slate-950/60 border border-slate-800/60 flex items-center justify-between">
+              <span className="text-slate-400 flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-amber-400" /> Daily Token Budget:
+              </span>
+              <span className="font-mono font-bold text-white">{(paymentDetails?.daily_token_limit || dailyTokenLimit).toLocaleString()}</span>
+            </div>
+            <div className="p-3.5 rounded-md bg-slate-950/60 border border-slate-800/60 flex items-center justify-between">
+              <span className="text-slate-400 flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-emerald-400" /> Page Capacity:
+              </span>
+              <span className="font-mono font-bold text-white">{paymentDetails?.max_pages || maxPages} Pages</span>
+            </div>
+            <div className="p-3.5 rounded-md bg-slate-950/60 border border-slate-800/60 flex items-center justify-between">
+              <span className="text-slate-400 flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-indigo-400" /> Member Limit:
+              </span>
+              <span className="font-mono font-bold text-white">{paymentDetails?.max_members || activeWorkspace?.max_members || 5} Seats</span>
             </div>
           </div>
         </div>
@@ -254,6 +299,19 @@ export default function WorkspaceSettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Custom Cancel Subscription Confirmation Modal */}
+      <ConfirmModal
+        isOpen={cancelModalOpen}
+        title="Cancel Active Subscription"
+        message="Are you sure you want to cancel your subscription? Your workspace plan access will remain active until the end of the current billing period."
+        confirmText="Cancel Subscription"
+        cancelText="Keep Subscription"
+        variant="danger"
+        loading={canceling}
+        onConfirm={handleCancelSubscription}
+        onCancel={() => setCancelModalOpen(false)}
+      />
 
       {/* Custom Delete Workspace Confirmation Modal */}
       <ConfirmModal
