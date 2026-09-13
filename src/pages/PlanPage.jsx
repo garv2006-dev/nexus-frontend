@@ -20,6 +20,7 @@ import {
   ShoppingCart
 } from 'lucide-react'
 import WorkspaceLayout from '../components/WorkspaceLayout'
+import ConfirmModal from '../components/ConfirmModal'
 import { useWorkspace } from '../context/WorkspaceContext'
 import { createCheckoutSession, getPaymentStatus, verifyCheckoutSession, cancelSubscription } from '../services/api'
 
@@ -32,6 +33,7 @@ export default function PlanPage() {
 
   const [loadingPlanId, setLoadingPlanId] = useState(null)
   const [canceling, setCanceling] = useState(false)
+  const [cancelModalOpen, setCancelModalOpen] = useState(false)
   const [paymentDetails, setPaymentDetails] = useState(null)
   const [loadingDetails, setLoadingDetails] = useState(true)
   const [successMsg, setSuccessMsg] = useState(null)
@@ -128,9 +130,6 @@ export default function PlanPage() {
   // Cancel workspace active subscription
   const handleCancelSubscription = async () => {
     if (!isOwner || canceling) return
-    if (!window.confirm('Are you sure you want to cancel your subscription? Your access will remain active until the end of the billing period.')) {
-      return
-    }
 
     try {
       setCanceling(true)
@@ -147,6 +146,7 @@ export default function PlanPage() {
       setErrorMsg(err.message || 'Failed to cancel subscription.')
     } finally {
       setCanceling(false)
+      setCancelModalOpen(false)
     }
   }
 
@@ -288,7 +288,7 @@ export default function PlanPage() {
 
               {currentPlan !== 'starter' && paymentDetails.subscription_status === 'active' && isOwner && (
                 <button
-                  onClick={handleCancelSubscription}
+                  onClick={() => setCancelModalOpen(true)}
                   disabled={canceling}
                   className="px-3.5 py-2 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all inline-flex items-center gap-2 self-start sm:self-auto"
                 >
@@ -448,54 +448,20 @@ export default function PlanPage() {
             )
           })}
         </div>
-
-        {/* Stripe Verified Payment History Section */}
-        {paymentDetails?.payment_history?.length > 0 && (
-          <div className="p-5 rounded-lg bg-slate-900 border border-slate-800 space-y-4">
-            <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
-              <Clock className="w-4 h-4 text-indigo-400" /> Payment & Transaction Audit Log
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-800 text-slate-400">
-                    <th className="pb-2 font-semibold">Plan</th>
-                    <th className="pb-2 font-semibold">Amount</th>
-                    <th className="pb-2 font-semibold">Payment Status</th>
-                    <th className="pb-2 font-semibold">Stripe Session ID</th>
-                    <th className="pb-2 font-semibold">Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                  {paymentDetails.payment_history.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="py-2.5 font-bold text-white uppercase">{tx.plan_id}</td>
-                      <td className="py-2.5 font-mono">${(tx.amount / 100).toFixed(2)} USD</td>
-                      <td className="py-2.5">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          tx.payment_status === 'succeeded'
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                            : tx.payment_status === 'pending'
-                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                            : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                        }`}>
-                          {tx.payment_status}
-                        </span>
-                      </td>
-                      <td className="py-2.5 font-mono text-[11px] text-slate-400 truncate max-w-[150px]">
-                        {tx.stripe_checkout_session_id || 'N/A'}
-                      </td>
-                      <td className="py-2.5 text-slate-400">
-                        {tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'N/A'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Custom Cancel Subscription Confirmation Modal */}
+      <ConfirmModal
+        isOpen={cancelModalOpen}
+        title="Cancel Active Subscription"
+        message="Are you sure you want to cancel your subscription? Your workspace plan access will remain active until the end of the current billing period."
+        confirmText="Cancel Subscription"
+        cancelText="Keep Subscription"
+        variant="danger"
+        loading={canceling}
+        onConfirm={handleCancelSubscription}
+        onCancel={() => setCancelModalOpen(false)}
+      />
     </WorkspaceLayout>
   )
 }
