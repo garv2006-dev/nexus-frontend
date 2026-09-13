@@ -143,7 +143,9 @@ export default function PlanPage() {
       if (res?.data) setPaymentDetails(res.data)
       await fetchWorkspaces()
     } catch (err) {
-      setErrorMsg(err.message || 'Failed to cancel subscription.')
+      if (!err.message?.includes('No active Stripe subscription found')) {
+        setErrorMsg(err.message || 'Failed to cancel subscription.')
+      }
     } finally {
       setCanceling(false)
       setCancelModalOpen(false)
@@ -238,7 +240,7 @@ export default function PlanPage() {
         </div>
 
         {/* Feedback Messages */}
-        {errorMsg && (
+        {errorMsg && !errorMsg.includes('No active Stripe subscription found') && (
           <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center justify-between gap-3 animate-in fade-in">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />

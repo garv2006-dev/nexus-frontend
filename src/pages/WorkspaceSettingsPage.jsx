@@ -106,7 +106,9 @@ export default function WorkspaceSettingsPage() {
       if (res?.data) setPaymentDetails(res.data)
       await fetchWorkspaces()
     } catch (err) {
-      setError(err.message || 'Failed to cancel subscription.')
+      if (!err.message?.includes('No active Stripe subscription found')) {
+        setError(err.message || 'Failed to cancel subscription.')
+      }
     } finally {
       setCanceling(false)
       setCancelModalOpen(false)
