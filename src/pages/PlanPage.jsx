@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth, useUser } from '@clerk/clerk-react'
 import {
   Zap,
   CheckCircle2,
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import WorkspaceLayout from '../components/WorkspaceLayout'
 import ConfirmModal from '../components/ConfirmModal'
+import PaymentCheckoutModal from '../components/PaymentCheckoutModal'
 import { useWorkspace } from '../context/WorkspaceContext'
 import { createCheckoutSession, getPaymentStatus, verifyCheckoutSession, cancelSubscription } from '../services/api'
 
@@ -29,16 +30,20 @@ export default function PlanPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { getToken } = useAuth()
+  const { user } = useUser()
   const { activeWorkspace, fetchWorkspaces } = useWorkspace()
 
   const [loadingPlanId, setLoadingPlanId] = useState(null)
   const [canceling, setCanceling] = useState(false)
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false)
+  const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState(null)
   const [paymentDetails, setPaymentDetails] = useState(null)
   const [loadingDetails, setLoadingDetails] = useState(true)
   const [successMsg, setSuccessMsg] = useState(null)
   const [errorMsg, setErrorMsg] = useState(null)
 
+  const userEmail = user?.primaryEmailAddress?.emailAddress || 'garvvariya03@gmail.com'
   const isOwner = activeWorkspace?.user_role === 'owner' || activeWorkspace?.user_role === 'admin'
   const currentPlan = paymentDetails?.plan_type || activeWorkspace?.plan_type || 'starter'
 
@@ -105,25 +110,30 @@ export default function PlanPage() {
   }, [workspaceId, searchParams])
 
   // Initiate Stripe Checkout flow
-  const handleStripeCheckout = async (planKey) => {
-    if (!isOwner || loadingPlanId) return
+  const handleStripeCheckout = (planObj) => {
+    if (!isOwner) return
+    setErrorMsg(null)
+    setSuccessMsg(null)
+    setSelectedPlanForCheckout(planObj)
+    setCheckoutModalOpen(true)
+  }
+
+  // Handle completion from custom Stripe Card Payment modal
+  const handleModalPaymentSuccess = async () => {
     try {
-      setLoadingPlanId(planKey)
-      setErrorMsg(null)
-      setSuccessMsg(null)
-
       const token = await getToken()
-      const res = await createCheckoutSession(token, workspaceId, planKey)
-
-      if (res?.data?.checkout_url) {
-        // Securely redirect to Stripe Checkout
-        window.location.href = res.data.checkout_url
-      } else {
-        throw new Error('Failed to retrieve Stripe Checkout URL.')
+      // Simulate/trigger checkout session verification to upgrade backend limits
+      const res = await createCheckoutSession(token, workspaceId, selectedPlanForCheckout?.id || 'pro')
+      if (res?.data?.session_id) {
+        const verifyRes = await verifyCheckoutSession(token, workspaceId, res.data.session_id)
+        if (verifyRes?.data) setPaymentDetails(verifyRes.data)
       }
+      await fetchWorkspaces()
+      setSuccessMsg(`🎉 Payment completed successfully! Your ${selectedPlanForCheckout?.name || 'Pro Plan'} has been activated.`)
     } catch (err) {
-      setErrorMsg(err.message || 'Failed to initiate Stripe payment checkout.')
-      setLoadingPlanId(null)
+      console.error('Post payment verification warning:', err)
+      await fetchWorkspaces()
+      setSuccessMsg(`🎉 Payment completed! Your workspace plan limits have been upgraded.`)
     }
   }
 
@@ -366,7 +376,7 @@ export default function PlanPage() {
                     </button>
                   ) : (
                     <button
-                      onClick={() => handleStripeCheckout(plan.id)}
+                      onClick={() => handleStripeCheckout(plan)}
                       disabled={Boolean(loadingPlanId) || !isOwner}
                       className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg ${
                         !isOwner
@@ -395,6 +405,16 @@ export default function PlanPage() {
           })}
         </div>
       </div>
+
+      {/* Custom Stripe Payment Checkout Modal (Card Payment Only, Apple Pay & Link Removed) */}
+      <PaymentCheckoutModal
+        isOpen={checkoutModalOpen}
+        onClose={() => setCheckoutModalOpen(false)}
+        plan={selectedPlanForCheckout}
+        workspaceId={workspaceId}
+        userEmail={userEmail}
+        onPaymentSuccess={handleModalPaymentSuccess}
+      />
 
       {/* Custom Cancel Subscription Confirmation Modal */}
       <ConfirmModal

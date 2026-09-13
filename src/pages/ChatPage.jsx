@@ -178,41 +178,41 @@ export default function ChatPage() {
 
   return (
     <WorkspaceLayout>
-      <div className="h-[calc(100vh-6.5rem)] flex flex-col md:flex-row gap-4 overflow-hidden">
+      <div className="h-[calc(100vh-10.5rem)] md:h-[calc(100vh-6.5rem)] flex flex-col md:flex-row gap-3 sm:gap-4 overflow-hidden">
         {/* Left Drawer: Conversation Threads */}
-        <div className="w-full md:w-64 bg-slate-900/70 border border-slate-800 rounded-lg p-3.5 flex flex-col shrink-0">
-          <div className="flex items-center justify-between mb-3 px-1">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Conversations
+        <div className="w-full md:w-64 max-h-32 md:max-h-none bg-slate-900/70 border border-slate-800 rounded-lg p-2.5 sm:p-3.5 flex flex-col shrink-0">
+          <div className="flex items-center justify-between mb-2 sm:mb-3 px-1">
+            <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Conversations ({conversations.length})
             </span>
             <button
               onClick={handleCreateNewChat}
-              className="px-2.5 py-1 rounded-md bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white transition-all text-xs flex items-center gap-1 font-medium border border-indigo-500/20"
+              className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white transition-all text-xs flex items-center gap-1 font-medium border border-indigo-500/20"
               title="New Chat"
             >
               <Plus className="w-3.5 h-3.5" /> New
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
+          <div className="flex-1 overflow-y-auto space-y-1 pr-0.5">
             {conversations.map(conv => {
               const isActive = activeConvId === conv.id
               return (
                 <div
                   key={conv.id}
                   onClick={() => setActiveConvId(conv.id)}
-                  className={`group flex items-center justify-between px-3 py-2 rounded-md cursor-pointer text-xs transition-all ${isActive
+                  className={`group flex items-center justify-between px-2.5 py-1.5 sm:py-2 rounded-md cursor-pointer text-xs transition-all ${isActive
                     ? 'bg-indigo-600/15 border border-indigo-500/30 text-white font-medium shadow-sm'
                     : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
                     }`}
                 >
                   <div className="flex items-center gap-2 truncate">
-                    <MessageSquare className={`w-3.5 h-3.5 ${isActive ? 'text-indigo-400' : 'text-slate-500'}`} />
+                    <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-indigo-400' : 'text-slate-500'}`} />
                     <span className="truncate">{conv.title}</span>
                   </div>
                   <button
                     onClick={(e) => triggerDeleteConv(conv, e)}
-                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 transition-opacity shrink-0"
                     title="Delete Chat"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
