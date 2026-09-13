@@ -59,7 +59,7 @@ export default function WorkspaceLayout({ children }) {
     return <Navigate to={`/workspace/${workspaces[0].id}/chat`} replace />
   }
 
-  const isOwner = currentWs?.user_role === 'owner'
+  const isOwnerOrAdmin = currentWs?.user_role === 'owner' || currentWs?.user_role === 'admin'
 
   const navItems = [
     { label: 'Chat', icon: MessageSquare, path: `/workspace/${workspaceId}/chat` },
@@ -67,7 +67,7 @@ export default function WorkspaceLayout({ children }) {
     { label: 'Members', icon: Users, path: `/workspace/${workspaceId}/members` },
     { label: 'Usage', icon: PieChart, path: `/workspace/${workspaceId}/usage` },
     { label: 'Plan & Upgrades', icon: Zap, path: `/workspace/${workspaceId}/plan` },
-    ...(isOwner ? [{ label: 'Settings', icon: Settings, path: `/workspace/${workspaceId}/settings` }] : []),
+    ...(isOwnerOrAdmin ? [{ label: 'Settings', icon: Settings, path: `/workspace/${workspaceId}/settings` }] : []),
   ]
 
   return (
