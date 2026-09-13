@@ -52,8 +52,8 @@ export default function WorkspaceSettingsPage() {
     ? activeWorkspace.user_role.charAt(0).toUpperCase() + activeWorkspace.user_role.slice(1)
     : 'Member'
 
-  const maxPages = activeWorkspace?.max_pages ?? 50
-  const dailyTokenLimit = activeWorkspace?.daily_token_limit ?? 50000
+  const maxPages = activeWorkspace?.max_pages ?? 25
+  const dailyTokenLimit = activeWorkspace?.daily_token_limit ?? 25000
   const pageCount = activeWorkspace?.page_count ?? 0
   const availablePages = Math.max(0, maxPages - pageCount)
 
@@ -250,7 +250,7 @@ export default function WorkspaceSettingsPage() {
               <span className="text-slate-400 flex items-center gap-1.5">
                 <Users className="w-3.5 h-3.5 text-indigo-400" /> Member Limit:
               </span>
-              <span className="font-mono font-bold text-white">{paymentDetails?.max_members || activeWorkspace?.max_members || 5} Seats</span>
+              <span className="font-mono font-bold text-white">{paymentDetails?.max_members || activeWorkspace?.max_members || 3} Seats</span>
             </div>
           </div>
         </div>

@@ -72,7 +72,7 @@ export default function MembersPage() {
     fetchData()
   }, [workspaceId])
 
-  const maxMembers = activeWorkspace?.max_members || 5
+  const maxMembers = activeWorkspace?.max_members || 3
   const currentCount = members.length
   const isLimitReached = currentCount >= maxMembers
   const isOwner = activeWorkspace?.user_role === 'owner' || activeWorkspace?.owner_id === currentUser?.id

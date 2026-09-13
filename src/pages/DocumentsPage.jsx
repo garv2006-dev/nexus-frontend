@@ -44,7 +44,7 @@ export default function DocumentsPage() {
 
   const userRole = activeWorkspace?.user_role || 'member'
   const canUpload = userRole === 'owner' || userRole === 'admin'
-  const maxPages = activeWorkspace?.max_pages || 50
+  const maxPages = activeWorkspace?.max_pages || 25
 
   const docCount = documents.length
   const pageCount = activeWorkspace?.page_count ?? documents.reduce((sum, d) => sum + (d.page_count || 1), 0)
@@ -174,7 +174,7 @@ export default function DocumentsPage() {
               <FileText className="w-5 h-5 text-indigo-400" /> Documents & Vector Index
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Default Plan: <strong>50 Pages Max Capacity</strong> (No document count limit. Only Owners & Admins can add documents).
+              Default Plan: <strong>25 Pages Max Capacity</strong> (No document count limit. Only Owners & Admins can add documents).
             </p>
           </div>
 
@@ -239,7 +239,7 @@ export default function DocumentsPage() {
             </div>
             <h3 className="text-sm font-semibold text-white">Document Uploads Restricted</h3>
             <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-              Only Workspace <strong>Owners</strong> and <strong>Admins</strong> are permitted to add or upload documents (Default plan: 50 total pages max).
+              Only Workspace <strong>Owners</strong> and <strong>Admins</strong> are permitted to add or upload documents (Default plan: 25 total pages max).
             </p>
           </div>
         ) : (
