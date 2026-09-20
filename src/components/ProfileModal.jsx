@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { useUser } from '@clerk/clerk-react'
+import { useUser, useAuth } from '@clerk/clerk-react'
 import { X, Camera, User, Mail, Edit3, Check, Loader2, AlertCircle } from 'lucide-react'
 import UserAvatar from './UserAvatar'
+import { updateProfile } from '../services/api'
 
 export default function ProfileModal({ isOpen, onClose }) {
   const { user } = useUser()
+  const { getToken } = useAuth()
   const fileInputRef = useRef(null)
 
   const [isEditing, setIsEditing] = useState(false)
@@ -66,9 +67,23 @@ export default function ProfileModal({ isOpen, onClose }) {
         lastName: lastName.trim(),
       })
 
+      let finalAvatarUrl = user.imageUrl
       // 2. Update Profile Image via Clerk User API if new image selected
       if (selectedFile) {
-        await user.setProfileImage({ file: selectedFile })
+        const imageRes = await user.setProfileImage({ file: selectedFile })
+        finalAvatarUrl = imageRes?.publicUrl || user.imageUrl
+      }
+
+      // 3. Sync to backend database
+      try {
+        const token = await getToken()
+        await updateProfile(token, {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          avatarUrl: finalAvatarUrl,
+        })
+      } catch (backendErr) {
+        console.warn('Backend profile sync warning:', backendErr)
       }
 
       setSuccessMsg('Profile updated successfully!')

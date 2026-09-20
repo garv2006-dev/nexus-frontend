@@ -66,6 +66,24 @@ export async function getProfile(token) {
   return handle(res)
 }
 
+export async function updateProfile(token, profileData) {
+  const res = await safeFetch(`${API_BASE}/api/users/me`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+    body: JSON.stringify(profileData),
+  })
+  return handle(res)
+}
+
+export async function syncProfile(token, profileData) {
+  const res = await safeFetch(`${API_BASE}/api/users/sync`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+    body: JSON.stringify(profileData),
+  })
+  return handle(res)
+}
+
 // --- Workspaces --------------------------------------------------------
 
 export async function listWorkspaces(token) {
@@ -113,11 +131,11 @@ export async function listWorkspaceMembers(token, workspaceId) {
   return handle(res)
 }
 
-export async function inviteWorkspaceMember(token, workspaceId, email, role = 'member') {
+export async function inviteWorkspaceMember(token, workspaceId, email, role = 'member', inviterName = '') {
   const res = await safeFetch(`${API_BASE}/api/workspaces/${workspaceId}/invitations`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
-    body: JSON.stringify({ email, role }),
+    body: JSON.stringify({ email, role, inviter_name: inviterName }),
   })
   return handle(res)
 }

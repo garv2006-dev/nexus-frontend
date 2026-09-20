@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useUser } from '@clerk/clerk-react'
+import { useUser, useAuth } from '@clerk/clerk-react'
 import {
   User,
   Mail,
@@ -15,10 +15,12 @@ import {
 import Header from '../components/Header'
 import WorkspaceLayout from '../components/WorkspaceLayout'
 import UserAvatar from '../components/UserAvatar'
+import { updateProfile } from '../services/api'
 
 export function ProfileContent() {
   const navigate = useNavigate()
   const { user } = useUser()
+  const { getToken } = useAuth()
   const fileInputRef = useRef(null)
 
   const [firstName, setFirstName] = useState('')
@@ -68,16 +70,30 @@ export function ProfileContent() {
 
     try {
       // 1. Update Name via Clerk API
-      await user.update({
+      const updatedUser = await user.update({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
       })
 
+      let finalAvatarUrl = user.imageUrl
       // 2. Update Profile Image via Clerk API if selected
       if (selectedFile) {
-        await user.setProfileImage({ file: selectedFile })
+        const imageRes = await user.setProfileImage({ file: selectedFile })
+        finalAvatarUrl = imageRes?.publicUrl || user.imageUrl
         setSelectedFile(null)
         setPreviewUrl(null)
+      }
+
+      // 3. Sync updated first name, last name & avatar to backend database
+      try {
+        const token = await getToken()
+        await updateProfile(token, {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          avatarUrl: finalAvatarUrl,
+        })
+      } catch (backendErr) {
+        console.warn('Backend profile sync warning:', backendErr)
       }
 
       setSuccessMsg('Profile updated successfully!')

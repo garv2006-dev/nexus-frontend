@@ -24,7 +24,8 @@ import {
   inviteWorkspaceMember,
   removeWorkspaceMember,
   listWorkspaceInvitations,
-  cancelWorkspaceInvitation
+  cancelWorkspaceInvitation,
+  syncProfile
 } from '../services/api'
 
 export default function MembersPage() {
@@ -54,6 +55,15 @@ export default function MembersPage() {
     try {
       setLoading(true)
       const token = await getToken()
+      if (currentUser) {
+        await syncProfile(token, {
+          email: currentUser.primaryEmailAddress?.emailAddress || '',
+          firstName: currentUser.firstName || '',
+          lastName: currentUser.lastName || '',
+          name: currentUser.fullName || `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || '',
+          avatarUrl: currentUser.imageUrl || '',
+        }).catch(() => {})
+      }
       const [membersList, invList] = await Promise.all([
         listWorkspaceMembers(token, workspaceId),
         listWorkspaceInvitations(token, workspaceId).catch(() => [])
@@ -90,7 +100,8 @@ export default function MembersPage() {
       setInviting(true)
       setModalError(null)
       const token = await getToken()
-      await inviteWorkspaceMember(token, workspaceId, inviteEmail.trim(), inviteRole)
+      const currentUserName = currentUser?.fullName || [currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ') || ''
+      await inviteWorkspaceMember(token, workspaceId, inviteEmail.trim(), inviteRole, currentUserName)
       setSuccessBanner(`Invitation sent to ${inviteEmail.trim()} with role '${inviteRole}'`)
       setTimeout(() => setSuccessBanner(null), 4000)
       setInviteEmail('')
@@ -235,18 +246,44 @@ export default function MembersPage() {
             <div className="divide-y divide-slate-800/60">
               {members.map((m) => {
                 const isMemberOwner = m.role === 'owner'
+                const isSelf = m.user_id === currentUser?.id
+                const memberFirstName = m.first_name || (isSelf ? currentUser?.firstName : '') || ''
+                const memberLastName = m.last_name || (isSelf ? currentUser?.lastName : '') || ''
+                const memberFullName =
+                  [memberFirstName, memberLastName].filter(Boolean).join(' ') ||
+                  (isSelf ? currentUser?.fullName : '') ||
+                  (m.name && !m.name.toLowerCase().startsWith('user user_') ? m.name : '') ||
+                  (m.email ? m.email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Workspace User')
+
+                const avatarSrc = m.avatar_url || (isSelf ? currentUser?.imageUrl : null)
+                const initialLetter = (
+                  memberFirstName[0] ||
+                  memberLastName[0] ||
+                  memberFullName[0] ||
+                  m.email?.[0] ||
+                  'U'
+                ).toUpperCase()
+
                 return (
                   <div
                     key={m.id}
                     className="p-3.5 sm:px-5 flex items-center justify-between gap-4 hover:bg-slate-800/40 transition-colors"
                   >
                     <div className="flex items-center gap-3 truncate">
-                      <div className="w-8 h-8 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-200 shrink-0">
-                        {m.name ? m.name[0].toUpperCase() : 'U'}
-                      </div>
+                      {avatarSrc ? (
+                        <img
+                          src={avatarSrc}
+                          alt={memberFullName}
+                          className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-700 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                          {initialLetter}
+                        </div>
+                      )}
                       <div className="truncate">
                         <div className="text-xs font-semibold text-white flex items-center gap-2 truncate">
-                          <span>{m.name || 'Workspace User'}</span>
+                          <span>{memberFullName}</span>
                           {renderRoleBadge(m.role)}
                         </div>
                         <div className="text-[11px] text-slate-400 truncate">{m.email}</div>
@@ -294,46 +331,55 @@ export default function MembersPage() {
             </div>
           ) : (
             <div className="divide-y divide-slate-800/60">
-              {pendingInvitations.map((inv) => (
-                <div
-                  key={inv.id}
-                  className="p-3.5 sm:px-5 flex items-center justify-between gap-4 hover:bg-slate-800/30 transition-colors"
-                >
-                  <div className="flex items-center gap-3 truncate">
-                    <div className="w-8 h-8 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
-                      <Mail className="w-4 h-4" />
-                    </div>
-                    <div className="truncate">
-                      <div className="text-xs font-semibold text-white flex items-center gap-2 truncate">
-                        <span>{inv.email}</span>
-                        {renderRoleBadge(inv.role)}
-                        <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-medium">
-                          Pending
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-slate-400 truncate">
-                        Invited by {inv.inviter_name || inv.inviter_email || 'Workspace Admin'}
-                      </div>
-                    </div>
-                  </div>
+              {pendingInvitations.map((inv) => {
+                const isInvitedBySelf = inv.invited_by === currentUser?.id || inv.inviter_email === currentUser?.primaryEmailAddress?.emailAddress
+                const inviterFullName =
+                  [inv.inviter_first_name, inv.inviter_last_name].filter(Boolean).join(' ') ||
+                  (isInvitedBySelf ? (currentUser?.fullName || `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim()) : '') ||
+                  (inv.inviter_name && !inv.inviter_name.toLowerCase().startsWith('user user_') ? inv.inviter_name : '') ||
+                  (inv.inviter_email ? inv.inviter_email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Workspace Admin')
 
-                  <div className="flex items-center gap-4 shrink-0">
-                    <span className="text-[10px] text-slate-500 hidden sm:inline-block">
-                      Sent {new Date(inv.created_at).toLocaleDateString()}
-                    </span>
-                    {isOwner && (
-                      <button
-                        onClick={() => handleRevokeInvitation(inv.id)}
-                        disabled={revokingId === inv.id}
-                        className="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 text-xs font-medium transition-colors"
-                        title="Revoke Invitation"
-                      >
-                        {revokingId === inv.id ? 'Revoking...' : 'Revoke'}
-                      </button>
-                    )}
+                return (
+                  <div
+                    key={inv.id}
+                    className="p-3.5 sm:px-5 flex items-center justify-between gap-4 hover:bg-slate-800/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 truncate">
+                      <div className="w-8 h-8 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
+                        <Mail className="w-4 h-4" />
+                      </div>
+                      <div className="truncate">
+                        <div className="text-xs font-semibold text-white flex items-center gap-2 truncate">
+                          <span>{inv.email}</span>
+                          {renderRoleBadge(inv.role)}
+                          <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-medium">
+                            Pending
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 truncate">
+                          Invited by {inviterFullName}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 shrink-0">
+                      <span className="text-[10px] text-slate-500 hidden sm:inline-block">
+                        Sent {new Date(inv.created_at).toLocaleDateString()}
+                      </span>
+                      {isOwner && (
+                        <button
+                          onClick={() => handleRevokeInvitation(inv.id)}
+                          disabled={revokingId === inv.id}
+                          className="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 text-xs font-medium transition-colors"
+                          title="Revoke Invitation"
+                        >
+                          {revokingId === inv.id ? 'Revoking...' : 'Revoke'}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

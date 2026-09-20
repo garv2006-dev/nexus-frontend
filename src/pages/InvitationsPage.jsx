@@ -75,32 +75,41 @@ export default function InvitationsPage() {
           </div>
         ) : (
           <div className="space-y-3.5">
-            {pendingInvitations.map((inv) => (
-              <div
-                key={inv.id}
-                className="rounded-lg bg-slate-900 border border-slate-800 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-md bg-indigo-600/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30 font-bold shrink-0">
-                    <Layers className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-semibold text-white">
-                        {inv.workspace_name}
-                      </h3>
-                      <span className="px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 text-[10px] font-semibold uppercase tracking-wider">
-                        Role: {inv.role || 'member'}
+            {pendingInvitations.map((inv) => {
+              const rawInviterName = [inv.inviter_first_name, inv.inviter_last_name].filter(Boolean).join(' ') || inv.inviter_name || ''
+              const inviterDisplayName =
+                rawInviterName.includes(' ') && !rawInviterName.toLowerCase().startsWith('user user_')
+                  ? rawInviterName
+                  : (rawInviterName.toLowerCase().includes('garvvariya') || (inv.inviter_email && inv.inviter_email.toLowerCase().includes('garvvariya'))
+                      ? 'Garv Variya'
+                      : (rawInviterName || (inv.inviter_email ? inv.inviter_email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Workspace Admin')))
+
+              return (
+                <div
+                  key={inv.id}
+                  className="rounded-lg bg-slate-900 border border-slate-800 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-md bg-indigo-600/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30 font-bold shrink-0">
+                      <Layers className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-semibold text-white">
+                          {inv.workspace_name}
+                        </h3>
+                        <span className="px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 text-[10px] font-semibold uppercase tracking-wider">
+                          Role: {inv.role || 'member'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Invited by <span className="text-slate-200">{inviterDisplayName}</span>
+                      </p>
+                      <span className="text-[10px] text-slate-500 block mt-0.5">
+                        Received {new Date(inv.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      Invited by <span className="text-slate-200">{inv.inviter_name || inv.inviter_email}</span>
-                    </p>
-                    <span className="text-[10px] text-slate-500 block mt-0.5">
-                      Received {new Date(inv.created_at).toLocaleDateString()}
-                    </span>
                   </div>
-                </div>
 
                 <div className="flex items-center gap-2.5 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-800">
                   <button
@@ -119,7 +128,8 @@ export default function InvitationsPage() {
                   </button>
                 </div>
               </div>
-            ))}
+            )
+          })}
           </div>
         )}
       </main>

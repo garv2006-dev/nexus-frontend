@@ -27,7 +27,9 @@ export function useProfile() {
         // push the display info we already have client-side once per login.
         await api.syncProfile(token, {
           email: user.primaryEmailAddress?.emailAddress || '',
-          name: user.fullName || user.username || 'New user',
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          name: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || '',
           avatarUrl: user.imageUrl,
         })
         const data = await api.getProfile(token)

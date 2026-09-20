@@ -35,7 +35,7 @@ export default function UserMenu() {
 
   if (!user) return null
 
-  const userName = user.fullName || user.firstName || 'User'
+  const userName = user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || 'User'
   const userEmail = user.primaryEmailAddress?.emailAddress || ''
 
   const handleSignOut = () => {
