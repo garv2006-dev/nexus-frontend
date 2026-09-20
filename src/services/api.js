@@ -22,16 +22,23 @@ function authHeaders(token, emailOverride) {
   return headers
 }
 
-async function safeFetch(url, options) {
-  try {
-    return await fetch(url, options)
-  } catch (err) {
-    if (err instanceof TypeError || err?.message === 'Failed to fetch') {
-      throw new Error(
-        `Failed to fetch: Server unreachable at ${API_BASE}. Ensure your backend server is running.`
-      )
+async function safeFetch(url, options, retries = 2, delay = 1200) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await fetch(url, options)
+    } catch (err) {
+      const isNetworkErr = err instanceof TypeError || err?.message === 'Failed to fetch'
+      if (isNetworkErr && i < retries) {
+        await new Promise((resolve) => setTimeout(resolve, delay * (i + 1)))
+        continue
+      }
+      if (isNetworkErr) {
+        throw new Error(
+          `Failed to fetch: Server unreachable at ${API_BASE}. Ensure your backend server is running.`
+        )
+      }
+      throw err
     }
-    throw err
   }
 }
 
