@@ -10,17 +10,22 @@ import {
   Loader2,
   Check,
   AlertCircle,
-  ShieldCheck
+  ShieldCheck,
+  Sun,
+  Moon,
+  Palette
 } from 'lucide-react'
 import Header from '../components/Header'
 import WorkspaceLayout from '../components/WorkspaceLayout'
 import UserAvatar from '../components/UserAvatar'
 import { updateProfile } from '../services/api'
+import { useTheme } from '../context/ThemeContext'
 
 export function ProfileContent() {
   const navigate = useNavigate()
   const { user } = useUser()
   const { getToken } = useAuth()
+  const { theme, setTheme } = useTheme()
   const fileInputRef = useRef(null)
 
   const [firstName, setFirstName] = useState('')
@@ -70,7 +75,7 @@ export function ProfileContent() {
 
     try {
       // 1. Update Name via Clerk API
-      const updatedUser = await user.update({
+      await user.update({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
       })
@@ -112,7 +117,7 @@ export function ProfileContent() {
       <div>
         <button
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
@@ -120,17 +125,17 @@ export function ProfileContent() {
 
       {/* Page Header */}
       <div className="space-y-1">
-        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-          <User className="w-5 h-5 text-indigo-400" /> Personal Profile
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+          <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" /> Personal Profile
         </h1>
-        <p className="text-xs text-slate-400">
-          Manage your account profile details, name, and display picture.
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Manage your account profile details, name, theme preferences, and display picture.
         </p>
       </div>
 
       {/* Error Banner */}
       {errorMsg && (
-        <div className="p-3.5 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+        <div className="p-3.5 rounded-md bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{errorMsg}</span>
         </div>
@@ -138,14 +143,14 @@ export function ProfileContent() {
 
       {/* Success Banner */}
       {successMsg && (
-        <div className="p-3.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2 animate-in fade-in duration-200">
+        <div className="p-3.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2 animate-in fade-in duration-200">
           <Check className="w-4 h-4 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {/* Avatar & Summary Card */}
-      <div className="rounded-lg bg-slate-900 border border-slate-800 p-5 sm:p-6 shadow-lg flex flex-col sm:flex-row items-center sm:items-start gap-6">
+      <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm dark:shadow-lg flex flex-col sm:flex-row items-center sm:items-start gap-6">
         <div className="relative group cursor-pointer shrink-0" onClick={() => fileInputRef.current?.click()}>
           {previewUrl ? (
             <img
@@ -171,16 +176,16 @@ export function ProfileContent() {
 
         <div className="space-y-2 text-center sm:text-left flex-1 min-w-0">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-            <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight truncate">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight truncate">
               {userFullName}
             </h2>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-indigo-950/80 border border-indigo-500/30 text-indigo-300 text-[11px] font-semibold">
-              <ShieldCheck className="w-3 h-3 text-indigo-400" />
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 text-[11px] font-semibold">
+              <ShieldCheck className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
               Authenticated User
             </span>
           </div>
-          <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs text-slate-400">
-            <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+          <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+            <Mail className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
             <span className="truncate">{userEmail}</span>
           </div>
           <p className="text-[11px] text-slate-500 pt-1">
@@ -189,14 +194,70 @@ export function ProfileContent() {
         </div>
       </div>
 
+      {/* Theme Preference Selection Section */}
+      <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 space-y-4 shadow-sm dark:shadow-lg">
+        <div>
+          <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            <Palette className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> Theme Preference
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Choose how Nexus RAG looks to you. Select between Light and Dark mode.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 pt-1">
+          <button
+            type="button"
+            onClick={() => setTheme('light')}
+            className={`p-4 rounded-lg border text-left transition-all flex flex-col justify-between gap-3 ${
+              theme === 'light'
+                ? 'bg-indigo-50/70 border-indigo-500 ring-2 ring-indigo-500/20 shadow-md'
+                : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-md bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
+                <Sun className="w-4 h-4" />
+              </div>
+              {theme === 'light' && <Check className="w-4 h-4 text-indigo-600" />}
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-white">Light Mode</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400">Clean, crisp light appearance</div>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setTheme('dark')}
+            className={`p-4 rounded-lg border text-left transition-all flex flex-col justify-between gap-3 ${
+              theme === 'dark'
+                ? 'bg-indigo-950/40 border-indigo-500 ring-2 ring-indigo-500/20 shadow-md'
+                : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-md bg-indigo-950 text-indigo-400 flex items-center justify-center font-bold">
+                <Moon className="w-4 h-4" />
+              </div>
+              {theme === 'dark' && <Check className="w-4 h-4 text-indigo-400" />}
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-white">Dark Mode</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400">Sleek, high-contrast dark theme</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
       {/* Profile Details Form */}
       <form onSubmit={handleSave} className="space-y-4">
-        <div className="rounded-lg bg-slate-900 border border-slate-800 p-5 sm:p-6 space-y-4 shadow-lg">
-          <h3 className="text-xs sm:text-sm font-semibold text-white">General Information</h3>
+        <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 space-y-4 shadow-sm dark:shadow-lg">
+          <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">General Information</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 First Name
               </label>
               <input
@@ -205,11 +266,11 @@ export function ProfileContent() {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="First name"
-                className="w-full px-3.5 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition-all"
+                className="w-full px-3.5 py-2.5 rounded-md bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition-all"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 Last Name
               </label>
               <input
@@ -217,20 +278,20 @@ export function ProfileContent() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="Last name"
-                className="w-full px-3.5 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition-all"
+                className="w-full px-3.5 py-2.5 rounded-md bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition-all"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
               Email Address
             </label>
             <input
               type="email"
               value={userEmail}
               disabled
-              className="w-full px-3.5 py-2.5 rounded-md bg-slate-950/60 border border-slate-800/60 text-slate-400 text-xs cursor-not-allowed select-none opacity-70 font-medium"
+              className="w-full px-3.5 py-2.5 rounded-md bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 text-slate-500 dark:text-slate-400 text-xs cursor-not-allowed select-none opacity-70 font-medium"
             />
             <p className="text-[11px] text-slate-500 mt-1.5">
               Your email address is managed by your authentication provider and cannot be changed here.
@@ -270,7 +331,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased transition-colors">
       <Header />
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <ProfileContent />

@@ -113,18 +113,18 @@ export default function ProfileModal({ isOpen, onClose }) {
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
       {/* Modal Card Container */}
       <div
-        className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-white tracking-tight flex items-center gap-2">
-            <User className="w-4 h-4 text-indigo-400" />
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <User className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             Profile
           </h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             aria-label="Close Profile Modal"
           >
             <X className="w-5 h-5" />
@@ -134,14 +134,14 @@ export default function ProfileModal({ isOpen, onClose }) {
         {/* Content Body */}
         <div className="p-6">
           {errorMsg && (
-            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+            <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2">
+            <div className="mb-4 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
               <Check className="w-4 h-4 shrink-0" />
               <span>{successMsg}</span>
             </div>
@@ -157,11 +157,11 @@ export default function ProfileModal({ isOpen, onClose }) {
 
               {/* Full Name & Email */}
               <div className="space-y-1">
-                <h3 className="text-xl font-bold text-white tracking-tight">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                   {userFullName}
                 </h3>
-                <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400 font-medium">
-                  <Mail className="w-3.5 h-3.5 text-slate-500" />
+                <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  <Mail className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                   <span>{userEmail}</span>
                 </div>
               </div>
@@ -204,14 +204,14 @@ export default function ProfileModal({ isOpen, onClose }) {
                   accept="image/*"
                   className="hidden"
                 />
-                <p className="text-[11px] text-slate-400">Click photo to update avatar</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Click photo to update avatar</p>
               </div>
 
               {/* Form Fields */}
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                       First Name
                     </label>
                     <input
@@ -219,12 +219,12 @@ export default function ProfileModal({ isOpen, onClose }) {
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       placeholder="First name"
-                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                      className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white text-xs placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                       Last Name
                     </label>
                     <input
@@ -232,33 +232,33 @@ export default function ProfileModal({ isOpen, onClose }) {
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       placeholder="Last name"
-                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                      className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white text-xs placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Email (Read-Only) */}
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                  <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
                     Email Address
                   </label>
                   <input
                     type="email"
                     value={userEmail}
                     disabled
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950/50 border border-slate-800/60 text-slate-400 text-xs cursor-not-allowed select-none opacity-75"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/60 text-slate-500 dark:text-slate-400 text-xs cursor-not-allowed select-none opacity-75"
                   />
                   <p className="text-[10px] text-slate-500 mt-1">Email address cannot be modified here.</p>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800/80">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800/80">
                 <button
                   type="button"
                   onClick={handleCancelEdit}
                   disabled={isSaving}
-                  className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>

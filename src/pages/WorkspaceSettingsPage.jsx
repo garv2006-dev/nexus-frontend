@@ -164,46 +164,46 @@ export default function WorkspaceSettingsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-              <Settings className="w-5 h-5 text-indigo-400" /> Workspace Settings
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+              <Settings className="w-5 h-5 text-indigo-600 dark:text-indigo-400" /> Workspace Settings
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Manage workspace name, resource quotas, and plan tier.
             </p>
           </div>
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+          <div className="p-3.5 rounded-md bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {savedSuccess && (
-          <div className="p-3.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2 animate-in fade-in duration-200">
+          <div className="p-3.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2 animate-in fade-in duration-200">
             <Check className="w-4 h-4 shrink-0" />
             <span>Workspace settings updated successfully!</span>
           </div>
         )}
 
         {/* Active Subscription Summary Banner */}
-        <div className="p-5 sm:p-6 rounded-lg bg-slate-900 border border-slate-800 shadow-xl space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div className="p-5 sm:p-6 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 ACTIVE SUBSCRIPTION SUMMARY
               </span>
               <div className="flex items-center gap-3 mt-1">
-                <h2 className="text-lg font-bold text-white tracking-tight">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                   {paymentDetails?.plan_name || `${planName} Plan`}
                 </h2>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                   (paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'active'
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    ? 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30'
                     : (paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'canceling'
-                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                    : 'bg-slate-800 text-slate-400 border border-slate-700'
+                    ? 'bg-amber-50 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
                 }`}>
                   STATUS: {(paymentDetails?.subscription_status || activeWorkspace?.subscription_status || 'active').toUpperCase()}
                 </span>
@@ -224,7 +224,7 @@ export default function WorkspaceSettingsPage() {
                   type="button"
                   onClick={() => setCancelModalOpen(true)}
                   disabled={canceling}
-                  className="px-3.5 py-2 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all inline-flex items-center gap-2"
+                  className="px-3.5 py-2 rounded-md bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all inline-flex items-center gap-2"
                 >
                   {canceling ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
                   Cancel Subscription
@@ -234,33 +234,33 @@ export default function WorkspaceSettingsPage() {
           </div>
 
           <div className="grid sm:grid-cols-3 gap-4 text-xs">
-            <div className="p-3.5 rounded-md bg-slate-950/60 border border-slate-800/60 flex items-center justify-between">
-              <span className="text-slate-400 flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-amber-400" /> Daily Token Budget:
+            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 flex items-center justify-between">
+              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" /> Daily Token Budget:
               </span>
-              <span className="font-mono font-bold text-white">{(paymentDetails?.daily_token_limit || dailyTokenLimit).toLocaleString()}</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white">{(paymentDetails?.daily_token_limit || dailyTokenLimit).toLocaleString()}</span>
             </div>
-            <div className="p-3.5 rounded-md bg-slate-950/60 border border-slate-800/60 flex items-center justify-between">
-              <span className="text-slate-400 flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-emerald-400" /> Page Capacity:
+            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 flex items-center justify-between">
+              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Page Capacity:
               </span>
-              <span className="font-mono font-bold text-white">{paymentDetails?.max_pages || maxPages} Pages</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white">{paymentDetails?.max_pages || maxPages} Pages</span>
             </div>
-            <div className="p-3.5 rounded-md bg-slate-950/60 border border-slate-800/60 flex items-center justify-between">
-              <span className="text-slate-400 flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-indigo-400" /> Member Limit:
+            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 flex items-center justify-between">
+              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" /> Member Limit:
               </span>
-              <span className="font-mono font-bold text-white">{paymentDetails?.max_members || activeWorkspace?.max_members || 3} Seats</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white">{paymentDetails?.max_members || activeWorkspace?.max_members || 3} Seats</span>
             </div>
           </div>
         </div>
 
         {/* General Information Form */}
         <form onSubmit={handleSaveSettings} className="space-y-4">
-          <div className="rounded-lg bg-slate-900 border border-slate-800 p-5 space-y-3.5 shadow-lg">
-            <h3 className="text-xs sm:text-sm font-semibold text-white">General Information</h3>
+          <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 space-y-3.5 shadow-sm dark:shadow-lg">
+            <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">General Information</h3>
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 Workspace Name
               </label>
               <input
@@ -268,7 +268,7 @@ export default function WorkspaceSettingsPage() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium"
+                className="w-full px-3.5 py-2.5 rounded-md bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium"
               />
             </div>
           </div>
@@ -287,11 +287,11 @@ export default function WorkspaceSettingsPage() {
 
         {/* Danger Zone (Owner Only) */}
         {isOwner && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-5 space-y-3.5 shadow-lg">
-            <div className="flex items-center gap-2 text-red-400 font-semibold text-xs sm:text-sm">
+          <div className="rounded-lg border border-red-200 dark:border-red-500/20 bg-red-50/50 dark:bg-red-500/5 p-5 space-y-3.5 shadow-sm dark:shadow-lg">
+            <div className="flex items-center gap-2 text-red-600 dark:text-red-400 font-semibold text-xs sm:text-sm">
               <ShieldAlert className="w-4 h-4" /> Danger Zone
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Deleting this workspace will permanently erase all associated documents, vector embeddings, chunk indices, conversation history, and usage statistics. This action cannot be undone.
             </p>
             <div>

@@ -56,7 +56,7 @@ export default function Sidebar({
         </AnimatePresence>
       </div>
 
-      <div className="hidden max-md:flex items-center gap-2 pt-3 border-t border-border-app mt-auto">
+      <div className="flex items-center gap-2 pt-3 border-t border-border-app mt-auto">
         <CreditsBadge credits={credits} />
         <Link to="/settings" className="grid place-items-center w-8 h-8 rounded-sm border border-border-app bg-surface-app text-text-app hover:bg-surface-alt-app no-underline transition-colors ml-auto" aria-label="Settings">
           <Settings size={16} />
@@ -67,7 +67,7 @@ export default function Sidebar({
           onClick={toggleTheme}
           aria-label="Toggle dark mode"
         >
-          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          {theme === 'dark' ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-indigo-600" />}
         </button>
       </div>
     </aside>
