@@ -81,13 +81,13 @@ export default function PlanPage() {
             if (isMounted && verifyRes?.data) {
               setPaymentDetails(verifyRes.data)
             }
-            await fetchWorkspaces()
+            await fetchWorkspaces(true)
             if (isMounted) {
               setSuccessMsg('🎉 Stripe payment completed successfully! Your workspace plan and limits have been activated.')
             }
           } catch (err) {
             console.error('Failed to verify Stripe session return:', err)
-            await fetchWorkspaces()
+            await fetchWorkspaces(true)
             if (isMounted) {
               setSuccessMsg(`Payment completed via Stripe! Workspace limits have been updated.`)
             }
@@ -96,7 +96,7 @@ export default function PlanPage() {
           }
         })()
       } else {
-        fetchWorkspaces()
+        fetchWorkspaces(true)
         setSearchParams({})
       }
     } else if (searchParams.get('canceled') === 'true') {

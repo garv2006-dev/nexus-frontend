@@ -104,7 +104,7 @@ export default function WorkspaceSettingsPage() {
 
       const res = await getPaymentStatus(token, workspaceId)
       if (res?.data) setPaymentDetails(res.data)
-      await fetchWorkspaces()
+      await fetchWorkspaces(true)
     } catch (err) {
       if (!err.message?.includes('No active Stripe subscription found')) {
         setError(err.message || 'Failed to cancel subscription.')
@@ -127,7 +127,7 @@ export default function WorkspaceSettingsPage() {
       await updateWorkspaceSettings(token, workspaceId, {
         name: name.trim()
       })
-      await fetchWorkspaces()
+      await fetchWorkspaces(true)
       setSavedSuccess(true)
       setTimeout(() => setSavedSuccess(false), 3000)
     } catch (err) {
@@ -144,7 +144,7 @@ export default function WorkspaceSettingsPage() {
       setError(null)
       const token = await getToken()
       await deleteWorkspace(token, workspaceId)
-      await fetchWorkspaces()
+      await fetchWorkspaces(true)
       navigate('/dashboard')
     } catch (err) {
       setError(err.message || 'Failed to delete workspace')

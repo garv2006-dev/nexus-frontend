@@ -53,10 +53,12 @@ export default function DocumentsPage() {
   const isPageLimitReached = availablePages <= 0
   const capacityPercent = Math.min(100, Math.round((pageCount / maxPages) * 100))
 
-  const fetchDocs = async () => {
+  const fetchDocs = async (silent = false) => {
     if (!workspaceId) return
     try {
-      setLoading(true)
+      if (!silent) {
+        setLoading(true)
+      }
       const token = await getToken()
       const list = await listWorkspaceDocuments(token, workspaceId)
       setDocuments(list || [])
@@ -64,7 +66,9 @@ export default function DocumentsPage() {
     } catch (err) {
       setError(err.message || 'Failed to load documents')
     } finally {
-      setLoading(false)
+      if (!silent) {
+        setLoading(false)
+      }
     }
   }
 
@@ -116,8 +120,8 @@ export default function DocumentsPage() {
       const token = await getToken()
       await uploadWorkspaceDocuments(token, workspaceId, selectedFiles)
       setSelectedFiles([])
-      await fetchDocs()
-      await fetchWorkspaces()
+      await fetchDocs(true)
+      await fetchWorkspaces(true)
     } catch (err) {
       setError(err.message || 'Upload and indexing failed')
     } finally {
@@ -127,15 +131,19 @@ export default function DocumentsPage() {
 
   const confirmDeleteDocument = async () => {
     if (!deleteModalDoc) return
+    const targetDocId = deleteModalDoc.id
     try {
       setDeletingDoc(true)
+      // Optimistic update
+      setDocuments(prev => prev.filter(d => d.id !== targetDocId))
       const token = await getToken()
-      await deleteWorkspaceDocument(token, workspaceId, deleteModalDoc.id)
+      await deleteWorkspaceDocument(token, workspaceId, targetDocId)
       setDeleteModalDoc(null)
-      await fetchDocs()
-      await fetchWorkspaces()
+      fetchDocs(true)
+      fetchWorkspaces(true)
     } catch (err) {
       setError(err.message || 'Failed to delete document')
+      fetchDocs(true)
     } finally {
       setDeletingDoc(false)
     }

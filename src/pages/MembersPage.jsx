@@ -50,13 +50,15 @@ export default function MembersPage() {
   const [removeModalMember, setRemoveModalMember] = useState(null)
   const [removingMember, setRemovingMember] = useState(false)
 
-  const fetchData = async () => {
+  const fetchData = async (silent = false) => {
     if (!workspaceId) return
     try {
-      setLoading(true)
+      if (!silent) {
+        setLoading(true)
+      }
       const token = await getToken()
       if (currentUser) {
-        await syncProfile(token, {
+        syncProfile(token, {
           email: currentUser.primaryEmailAddress?.emailAddress || '',
           firstName: currentUser.firstName || '',
           lastName: currentUser.lastName || '',
@@ -74,7 +76,9 @@ export default function MembersPage() {
     } catch (err) {
       setError(err.message || 'Failed to load workspace members and invitations')
     } finally {
-      setLoading(false)
+      if (!silent) {
+        setLoading(false)
+      }
     }
   }
 
@@ -96,18 +100,28 @@ export default function MembersPage() {
       return
     }
 
+    const emailToSend = inviteEmail.trim()
+    const roleToSend = inviteRole
+
     try {
       setInviting(true)
       setModalError(null)
       const token = await getToken()
       const currentUserName = currentUser?.fullName || [currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ') || ''
-      await inviteWorkspaceMember(token, workspaceId, inviteEmail.trim(), inviteRole, currentUserName)
-      setSuccessBanner(`Invitation sent to ${inviteEmail.trim()} with role '${inviteRole}'`)
+      const newInv = await inviteWorkspaceMember(token, workspaceId, emailToSend, roleToSend, currentUserName)
+
+      if (newInv && newInv.id) {
+        setPendingInvitations(prev => [newInv, ...prev.filter(i => i.id !== newInv.id)])
+      }
+
+      setSuccessBanner(`Invitation sent to ${emailToSend} with role '${roleToSend}'`)
       setTimeout(() => setSuccessBanner(null), 4000)
       setInviteEmail('')
       setInviteRole('member')
       setInviteModalOpen(false)
-      await fetchData()
+      
+      // Silent background fetch to ensure full sync with DB
+      fetchData(true)
     } catch (err) {
       setModalError(err.message || 'Failed to send invitation')
     } finally {
@@ -118,13 +132,16 @@ export default function MembersPage() {
   const handleRevokeInvitation = async (invitationId) => {
     try {
       setRevokingId(invitationId)
+      // Optimistic state update
+      setPendingInvitations(prev => prev.filter(inv => inv.id !== invitationId))
       const token = await getToken()
       await cancelWorkspaceInvitation(token, workspaceId, invitationId)
       setSuccessBanner('Invitation cancelled successfully')
       setTimeout(() => setSuccessBanner(null), 4000)
-      await fetchData()
+      fetchData(true)
     } catch (err) {
       setError(err.message || 'Failed to revoke invitation')
+      fetchData(true)
     } finally {
       setRevokingId(null)
     }
@@ -132,15 +149,19 @@ export default function MembersPage() {
 
   const confirmRemoveMember = async () => {
     if (!removeModalMember) return
+    const targetUserId = removeModalMember.user_id
     try {
       setRemovingMember(true)
+      // Optimistic state update
+      setMembers(prev => prev.filter(m => m.user_id !== targetUserId))
       const token = await getToken()
-      await removeWorkspaceMember(token, workspaceId, removeModalMember.user_id)
+      await removeWorkspaceMember(token, workspaceId, targetUserId)
       setRemoveModalMember(null)
-      await fetchData()
-      await fetchWorkspaces()
+      fetchData(true)
+      fetchWorkspaces(true)
     } catch (err) {
       setError(err.message || 'Failed to remove member')
+      fetchData(true)
     } finally {
       setRemovingMember(false)
     }

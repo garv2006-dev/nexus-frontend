@@ -33,7 +33,7 @@ export function WorkspaceProvider({ children }) {
     }
   }, [isSignedIn, userEmail])
 
-  const fetchWorkspaces = useCallback(async () => {
+  const fetchWorkspaces = useCallback(async (silent = false) => {
     if (!isSignedIn || !userId) {
       setWorkspaces([])
       setActiveWorkspace(null)
@@ -41,7 +41,9 @@ export function WorkspaceProvider({ children }) {
       return
     }
     try {
-      setLoading(true)
+      if (!silent) {
+        setLoading(true)
+      }
       const token = await getToken()
       const list = await listWorkspaces(token)
       const workspaceList = list || []
@@ -50,20 +52,24 @@ export function WorkspaceProvider({ children }) {
       // Persist / recover active workspace choice (scoped by userId)
       const storageKey = `active_workspace_${userId}`
       const savedWsId = localStorage.getItem(storageKey)
-      if (savedWsId && workspaceList.some(w => w.id === savedWsId)) {
-        setActiveWorkspace(workspaceList.find(w => w.id === savedWsId))
-      } else if (workspaceList.length > 0) {
-        setActiveWorkspace(workspaceList[0])
-        localStorage.setItem(storageKey, workspaceList[0].id)
-      } else {
-        setActiveWorkspace(null)
-      }
+      setActiveWorkspace(prev => {
+        if (prev) {
+          const updated = workspaceList.find(w => w.id === prev.id)
+          if (updated) return updated
+        }
+        if (savedWsId && workspaceList.some(w => w.id === savedWsId)) {
+          return workspaceList.find(w => w.id === savedWsId)
+        }
+        return workspaceList[0] || null
+      })
       setError(null)
     } catch (err) {
       console.error('Failed to fetch workspaces:', err)
       setError(err.message)
     } finally {
-      setLoading(false)
+      if (!silent) {
+        setLoading(false)
+      }
     }
   }, [isSignedIn, userId, getToken])
 
@@ -106,7 +112,7 @@ export function WorkspaceProvider({ children }) {
   const handleCreateWorkspace = async (name) => {
     const token = await getToken()
     const newWs = await apiCreateWorkspace(token, name)
-    await fetchWorkspaces()
+    await fetchWorkspaces(true)
     if (newWs && newWs.id) {
       switchWorkspace(newWs.id)
     }
@@ -117,7 +123,7 @@ export function WorkspaceProvider({ children }) {
     const token = await getToken()
     const res = await apiAcceptInvitation(token, invitationId)
     await fetchInvitations()
-    await fetchWorkspaces()
+    await fetchWorkspaces(true)
     if (res.workspace_id) {
       switchWorkspace(res.workspace_id)
     }
