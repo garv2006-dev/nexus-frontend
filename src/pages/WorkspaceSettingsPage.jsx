@@ -269,7 +269,11 @@ export default function WorkspaceSettingsPage() {
                 <Calendar className="w-3.5 h-3.5 text-indigo-500" /> Purchased / Start Date:
               </span>
               <span className="font-mono font-bold text-slate-900 dark:text-white block">
-                {formatDate(paymentDetails?.purchased_at) || formatDate(paymentDetails?.created_at) || formatDate(activeWorkspace?.created_at) || 'Free Starter Tier'}
+                {formatDate(paymentDetails?.purchased_at) ||
+                 formatDate(paymentHistory.find(p => p.payment_status === 'succeeded')?.completed_at) ||
+                 formatDate(paymentHistory.find(p => p.payment_status === 'succeeded')?.created_at) ||
+                 formatDate(activeWorkspace?.created_at) ||
+                 'Free Starter Tier'}
               </span>
             </div>
 
