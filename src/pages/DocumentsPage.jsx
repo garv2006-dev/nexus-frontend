@@ -182,7 +182,7 @@ export default function DocumentsPage() {
               <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" /> Documents & Vector Index
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Default Plan: <strong className="text-slate-700 dark:text-slate-300">25 Pages Max Capacity</strong> (No document count limit. Only Owners & Admins can add documents).
+              Plan Capacity: <strong className="text-slate-700 dark:text-slate-300">{maxPages} Pages Max Capacity</strong> (No document count limit. Only Owners & Admins can add documents).
             </p>
           </div>
 
@@ -247,7 +247,7 @@ export default function DocumentsPage() {
             </div>
             <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Document Uploads Restricted</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-              Only Workspace <strong>Owners</strong> and <strong>Admins</strong> are permitted to add or upload documents (Default plan: 25 total pages max).
+              Only Workspace <strong>Owners</strong> and <strong>Admins</strong> are permitted to add or upload documents (Current plan: {maxPages} total pages max).
             </p>
           </div>
         ) : (

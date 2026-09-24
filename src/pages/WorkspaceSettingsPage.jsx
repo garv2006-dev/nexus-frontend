@@ -20,12 +20,32 @@ import {
   CheckCircle2,
   Layers,
   HardDrive,
-  XCircle
+  XCircle,
+  Calendar,
+  Clock,
+  CreditCard,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import WorkspaceLayout from '../components/WorkspaceLayout'
 import ConfirmModal from '../components/ConfirmModal'
 import { useWorkspace } from '../context/WorkspaceContext'
 import { updateWorkspaceSettings, deleteWorkspace, getPaymentStatus, cancelSubscription } from '../services/api'
+
+function formatDate(dateStr) {
+  if (!dateStr) return null
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return dateStr
+    return d.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  } catch {
+    return dateStr
+  }
+}
 
 export default function WorkspaceSettingsPage() {
   const { workspaceId } = useParams()
@@ -44,16 +64,25 @@ export default function WorkspaceSettingsPage() {
   const [canceling, setCanceling] = useState(false)
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
 
+  // Transaction history pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 5
+
+  const paymentHistory = paymentDetails?.payment_history || []
+  const totalPages = Math.ceil(paymentHistory.length / ITEMS_PER_PAGE) || 1
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  const currentTransactions = paymentHistory.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+
   const isOwner = activeWorkspace?.user_role === 'owner'
   const isAdminOrOwner = activeWorkspace?.user_role === 'owner' || activeWorkspace?.user_role === 'admin'
-  const planType = activeWorkspace?.plan_type || 'starter'
-  const planName = planType.charAt(0).toUpperCase() + planType.slice(1)
+  const planType = paymentDetails?.plan_type || activeWorkspace?.plan_type || 'starter'
+  const planName = paymentDetails?.plan_name || (planType.charAt(0).toUpperCase() + planType.slice(1) + ' Plan')
   const userRole = activeWorkspace?.user_role
     ? activeWorkspace.user_role.charAt(0).toUpperCase() + activeWorkspace.user_role.slice(1)
     : 'Member'
 
-  const maxPages = activeWorkspace?.max_pages ?? 25
-  const dailyTokenLimit = activeWorkspace?.daily_token_limit ?? 25000
+  const maxPages = paymentDetails?.max_pages ?? activeWorkspace?.max_pages ?? 25
+  const dailyTokenLimit = paymentDetails?.daily_token_limit ?? activeWorkspace?.daily_token_limit ?? 25000
   const pageCount = activeWorkspace?.page_count ?? 0
   const availablePages = Math.max(0, maxPages - pageCount)
 
@@ -78,6 +107,8 @@ export default function WorkspaceSettingsPage() {
       }
     }
     if (workspaceId) {
+      setPaymentDetails(null)
+      setCurrentPage(1)
       loadStatus()
     }
     return () => {
@@ -192,19 +223,18 @@ export default function WorkspaceSettingsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
             <div>
               <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                ACTIVE SUBSCRIPTION SUMMARY
+                ACTIVE SUBSCRIPTION FOR: <span className="text-slate-900 dark:text-white font-extrabold">{activeWorkspace?.name}</span>
               </span>
               <div className="flex items-center gap-3 mt-1">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                   {paymentDetails?.plan_name || `${planName} Plan`}
                 </h2>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                  (paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'active'
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${(paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'active'
                     ? 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30'
                     : (paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'canceling'
-                    ? 'bg-amber-50 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
-                }`}>
+                      ? 'bg-amber-50 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
+                  }`}>
                   STATUS: {(paymentDetails?.subscription_status || activeWorkspace?.subscription_status || 'active').toUpperCase()}
                 </span>
               </div>
@@ -216,7 +246,7 @@ export default function WorkspaceSettingsPage() {
                 onClick={() => navigate(`/workspace/${workspaceId}/plan`)}
                 className="px-3.5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all inline-flex items-center gap-1.5"
               >
-                <Sparkles className="w-4 h-4" /> Upgrade Plan <ArrowRight className="w-3.5 h-3.5" />
+                <Sparkles className="w-4 h-4" /> Manage Plan & Billing <ArrowRight className="w-3.5 h-3.5" />
               </button>
 
               {planType !== 'starter' && (paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'active' && isOwner && (
@@ -233,24 +263,40 @@ export default function WorkspaceSettingsPage() {
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-4 text-xs">
-            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 flex items-center justify-between">
-              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
+              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5 text-[11px]">
+                <Calendar className="w-3.5 h-3.5 text-indigo-500" /> Purchased / Start Date:
+              </span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white block">
+                {formatDate(paymentDetails?.purchased_at) || formatDate(paymentDetails?.created_at) || formatDate(activeWorkspace?.created_at) || 'Free Starter Tier'}
+              </span>
+            </div>
+
+            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
+              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5 text-[11px]">
+                <Clock className="w-3.5 h-3.5 text-amber-500" />
+                {(paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'canceling' ? 'Access Expiration Date:' : 'Renewal / Expiration Date:'}
+              </span>
+              <span className={`font-mono font-bold block ${(paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'canceling' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white'}`}>
+                {planType === 'starter'
+                  ? 'No Expiration (Free)'
+                  : formatDate(paymentDetails?.current_period_end || activeWorkspace?.current_period_end) || '30 Days from Checkout'}
+              </span>
+            </div>
+
+            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
+              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5 text-[11px]">
                 <Zap className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" /> Daily Token Budget:
               </span>
-              <span className="font-mono font-bold text-slate-900 dark:text-white">{(paymentDetails?.daily_token_limit || dailyTokenLimit).toLocaleString()}</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white block font-mono">{(paymentDetails?.daily_token_limit || dailyTokenLimit).toLocaleString()}</span>
             </div>
-            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 flex items-center justify-between">
-              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+
+            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
+              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5 text-[11px]">
                 <Layers className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Page Capacity:
               </span>
-              <span className="font-mono font-bold text-slate-900 dark:text-white">{paymentDetails?.max_pages || maxPages} Pages</span>
-            </div>
-            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 flex items-center justify-between">
-              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" /> Member Limit:
-              </span>
-              <span className="font-mono font-bold text-slate-900 dark:text-white">{paymentDetails?.max_members || activeWorkspace?.max_members || 3} Seats</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white block font-mono">{paymentDetails?.max_pages || maxPages} Pages</span>
             </div>
           </div>
         </div>
@@ -284,6 +330,127 @@ export default function WorkspaceSettingsPage() {
             </button>
           </div>
         </form>
+
+        {/* Payment & Transaction History Table with Pagination */}
+        <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm dark:shadow-xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> Payment & Transaction History
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Past subscription payments and invoice receipts logged for {activeWorkspace?.name || 'this workspace'}.
+              </p>
+            </div>
+            {paymentHistory.length > 0 && (
+              <span className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-bold self-start sm:self-auto border border-slate-200 dark:border-slate-700">
+                {paymentHistory.length} Total {paymentHistory.length === 1 ? 'Transaction' : 'Transactions'}
+              </span>
+            )}
+          </div>
+
+          {paymentHistory.length > 0 ? (
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase text-[10px] tracking-wider bg-slate-50/50 dark:bg-slate-950/40">
+                      <th className="py-2.5 px-3">Date Paid</th>
+                      <th className="py-2.5 px-3">Plan Tier</th>
+                      <th className="py-2.5 px-3">Amount</th>
+                      <th className="py-2.5 px-3">Payment Status</th>
+                      <th className="py-2.5 px-3">Subscription Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                    {currentTransactions.map((tx) => (
+                      <tr key={tx.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="py-3 px-3 font-mono text-slate-900 dark:text-slate-200">
+                          {formatDate(tx.completed_at || tx.created_at)}
+                        </td>
+                        <td className="py-3 px-3 text-slate-900 dark:text-white capitalize font-semibold">
+                          {(tx.plan_id ? tx.plan_id.charAt(0).toUpperCase() + tx.plan_id.slice(1) : 'Pro')} Plan
+                        </td>
+                        <td className="py-3 px-3 font-mono text-slate-900 dark:text-slate-200">
+                          ${((tx.amount || 0) / 100).toFixed(2)} {(tx.currency || 'usd').toUpperCase()}
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                            tx.payment_status === 'succeeded'
+                              ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30'
+                              : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30'
+                          }`}>
+                            {tx.payment_status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                            {tx.subscription_status || 'active'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Clean Pagination Controls Bar */}
+              {totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                  <div className="text-slate-500 dark:text-slate-400 text-[11px]">
+                    Showing <span className="font-semibold text-slate-900 dark:text-white">{startIndex + 1}</span> to{' '}
+                    <span className="font-semibold text-slate-900 dark:text-white">
+                      {Math.min(startIndex + ITEMS_PER_PAGE, paymentHistory.length)}
+                    </span>{' '}
+                    of <span className="font-semibold text-slate-900 dark:text-white">{paymentHistory.length}</span> transactions
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 text-slate-700 dark:text-slate-300 transition-all text-xs font-semibold flex items-center gap-1 border border-slate-200 dark:border-slate-700"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" /> Previous
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          type="button"
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-7 h-7 rounded text-xs font-bold transition-all flex items-center justify-center ${
+                            currentPage === page
+                              ? 'bg-indigo-600 text-white shadow-sm'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 text-slate-700 dark:text-slate-300 transition-all text-xs font-semibold flex items-center gap-1 border border-slate-200 dark:border-slate-700"
+                    >
+                      Next <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-6 text-center bg-slate-50 dark:bg-slate-950/50 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs">
+              <FileText className="w-8 h-8 mx-auto mb-2 text-slate-400 opacity-60" />
+              <span>No payment transactions logged for <strong>{activeWorkspace?.name || 'this workspace'}</strong> yet.</span>
+            </div>
+          )}
+        </div>
 
         {/* Danger Zone (Owner Only) */}
         {isOwner && (

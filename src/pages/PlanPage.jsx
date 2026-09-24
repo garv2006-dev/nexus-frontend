@@ -17,13 +17,32 @@ import {
   Clock,
   Sparkles,
   ArrowLeft,
-  ShoppingCart
+  ShoppingCart,
+  Building2,
+  FileText
 } from 'lucide-react'
 import WorkspaceLayout from '../components/WorkspaceLayout'
 import ConfirmModal from '../components/ConfirmModal'
 import PaymentCheckoutModal from '../components/PaymentCheckoutModal'
 import { useWorkspace } from '../context/WorkspaceContext'
 import { createCheckoutSession, getPaymentStatus, verifyCheckoutSession, cancelSubscription } from '../services/api'
+
+function formatDate(dateStr) {
+  if (!dateStr) return null
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return dateStr
+    return d.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch {
+    return dateStr
+  }
+}
 
 export default function PlanPage() {
   const { workspaceId } = useParams()
@@ -46,6 +65,9 @@ export default function PlanPage() {
   const userEmail = user?.primaryEmailAddress?.emailAddress || 'garvvariya03@gmail.com'
   const isOwner = activeWorkspace?.user_role === 'owner' || activeWorkspace?.user_role === 'admin'
   const currentPlan = paymentDetails?.plan_type || activeWorkspace?.plan_type || 'starter'
+  const subStatus = paymentDetails?.subscription_status || activeWorkspace?.subscription_status || 'active'
+  const periodEnd = paymentDetails?.current_period_end || activeWorkspace?.current_period_end
+  const purchasedAt = paymentDetails?.purchased_at
 
   // Load payment status and handle Stripe return URLs
   useEffect(() => {
@@ -122,17 +144,18 @@ export default function PlanPage() {
   const handleModalPaymentSuccess = async () => {
     try {
       const token = await getToken()
+      const targetPlanId = selectedPlanForCheckout?.id || 'enterprise'
       // Simulate/trigger checkout session verification to upgrade backend limits
-      const res = await createCheckoutSession(token, workspaceId, selectedPlanForCheckout?.id || 'pro')
+      const res = await createCheckoutSession(token, workspaceId, targetPlanId)
       if (res?.data?.session_id) {
         const verifyRes = await verifyCheckoutSession(token, workspaceId, res.data.session_id)
         if (verifyRes?.data) setPaymentDetails(verifyRes.data)
       }
-      await fetchWorkspaces()
-      setSuccessMsg(`🎉 Payment completed successfully! Your ${selectedPlanForCheckout?.name || 'Pro Plan'} has been activated.`)
+      await fetchWorkspaces(true)
+      setSuccessMsg(`🎉 Payment completed successfully! Your ${selectedPlanForCheckout?.name || 'Enterprise Plan'} has been activated.`)
     } catch (err) {
       console.error('Post payment verification warning:', err)
-      await fetchWorkspaces()
+      await fetchWorkspaces(true)
       setSuccessMsg(`🎉 Payment completed! Your workspace plan limits have been upgraded.`)
     }
   }
@@ -146,7 +169,7 @@ export default function PlanPage() {
       setErrorMsg(null)
       const token = await getToken()
       await cancelSubscription(token, workspaceId)
-      setSuccessMsg('Subscription set to cancel at the end of the current period.')
+      setSuccessMsg('Subscription set to cancel at the end of the current billing period.')
 
       // Refresh payment status and workspace limits
       const res = await getPaymentStatus(token, workspaceId)
@@ -231,14 +254,14 @@ export default function PlanPage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="px-2.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
-                <CreditCard className="w-3 h-3 text-indigo-600 dark:text-indigo-400" /> Stripe Secure Checkout & Subscription Management
+                <CreditCard className="w-3 h-3 text-indigo-600 dark:text-indigo-400" /> Stripe Secure Workspace Billing
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <Zap className="w-5 h-5 text-amber-500 dark:text-amber-400" /> Plan & Upgrades
+              <Zap className="w-5 h-5 text-amber-500 dark:text-amber-400" /> Plan & Subscriptions
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Select or manage your workspace subscription. Payments are securely processed by Stripe.
+              Choose the best plan tier for {activeWorkspace?.name || 'your workspace'}. Upgrade or switch plans anytime.
             </p>
           </div>
 
@@ -276,140 +299,150 @@ export default function PlanPage() {
         )}
 
         {/* Pricing Cards Grid */}
-        <div className="grid md:grid-cols-3 gap-5">
-          {plans.map((plan) => {
-            const active = currentPlan === plan.id
-            const isLoading = loadingPlanId === plan.id
+        <div>
+          <div className="mb-4">
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">Available Workspace Plans</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Upgrade or switch plans specifically for {activeWorkspace?.name || 'this workspace'}.</p>
+          </div>
 
-            return (
-              <div
-                key={plan.id}
-                className={`rounded-lg p-5 flex flex-col justify-between transition-all duration-200 relative ${
-                  plan.highlight
-                    ? 'bg-indigo-50/40 dark:bg-gradient-to-b dark:from-indigo-950/60 dark:to-slate-900 border-2 border-indigo-500/60 shadow-md dark:shadow-xl dark:shadow-indigo-600/10'
-                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-lg hover:border-slate-300 dark:hover:border-slate-700'
-                }`}
-              >
-                {/* Top Badge */}
-                {plan.badge && (
-                  <div className="absolute -top-2.5 right-5">
-                    <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-md ${
-                      active
-                        ? 'bg-emerald-600 text-white'
-                        : plan.highlight
-                        ? 'bg-indigo-600 text-white shadow-indigo-600/30'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
-                    }`}>
-                      {active ? 'Current Active Tier' : plan.badge}
-                    </span>
-                  </div>
-                )}
+          <div className="grid md:grid-cols-3 gap-5">
+            {plans.map((plan) => {
+              const active = currentPlan === plan.id
+              const isLoading = loadingPlanId === plan.id
 
-                <div className="space-y-5">
-                  {/* Plan Details */}
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight mb-1">
-                      {plan.name}
-                    </h3>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono">{plan.price}</span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400">{plan.period}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-                      {plan.description}
-                    </p>
-                  </div>
-
-                  {/* Quota Highlights Box */}
-                  <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800/80 space-y-2 text-xs">
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                        <Zap className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" /> Daily Tokens:
-                      </span>
-                      <span className="font-bold text-slate-900 dark:text-white font-mono">{plan.tokens.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                        <Layers className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Page Capacity:
-                      </span>
-                      <span className="font-bold text-slate-900 dark:text-white font-mono">{plan.pages} Pages</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" /> Member Seats:
-                      </span>
-                      <span className="font-bold text-slate-900 dark:text-white font-mono">{plan.members} Seats</span>
-                    </div>
-                  </div>
-
-                  {/* Capabilities List */}
-                  <div className="space-y-2 pt-1">
-                    <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                      Included Capabilities:
-                    </span>
-                    {plan.features.map((feat, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                        <span>{feat}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Plan Action CTA Button */}
-                <div className="pt-5 mt-5 border-t border-slate-100 dark:border-slate-800/80">
-                  {active ? (
-                    <button
-                      disabled
-                      className="w-full py-2.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-center gap-2 cursor-default"
-                    >
-                      <Check className="w-4 h-4" /> Active Plan
-                    </button>
-                  ) : plan.id === 'starter' ? (
-                    <button
-                      disabled
-                      className="w-full py-2.5 rounded-md bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 text-xs font-semibold flex items-center justify-center cursor-default"
-                    >
-                      Default Starter Tier
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleStripeCheckout(plan)}
-                      disabled={Boolean(loadingPlanId) || !isOwner}
-                      className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg ${
-                        !isOwner
-                          ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700'
+              return (
+                <div
+                  key={plan.id}
+                  className={`rounded-lg p-5 flex flex-col justify-between transition-all duration-200 relative ${
+                    active
+                      ? 'bg-emerald-50/40 dark:bg-gradient-to-b dark:from-emerald-950/60 dark:to-slate-900 border-2 border-emerald-500 shadow-md dark:shadow-xl dark:shadow-emerald-600/10'
+                      : plan.highlight
+                      ? 'bg-indigo-50/40 dark:bg-gradient-to-b dark:from-indigo-950/60 dark:to-slate-900 border-2 border-indigo-500/60 shadow-md dark:shadow-xl dark:shadow-indigo-600/10'
+                      : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-lg hover:border-slate-300 dark:hover:border-slate-700'
+                  }`}
+                >
+                  {/* Top Badge */}
+                  {(active || plan.badge) && (
+                    <div className="absolute -top-2.5 right-5">
+                      <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-md ${
+                        active
+                          ? 'bg-emerald-600 text-white'
                           : plan.highlight
-                          ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-600/30 hover:scale-[1.01] active:scale-[0.99] border border-indigo-400/30'
-                          : 'bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white border border-slate-700'
-                      }`}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" /> Preparing Stripe Checkout...
-                        </>
-                      ) : !isOwner ? (
-                        'Owner Permission Required'
-                      ) : (
-                        <>
-                          <ShoppingCart className="w-4 h-4 text-white shrink-0" /> Upgrade to {plan.name} ({plan.price})
-                        </>
-                      )}
-                    </button>
+                          ? 'bg-indigo-600 text-white shadow-indigo-600/30'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                      }`}>
+                        {active ? 'CURRENT ACTIVE TIER' : plan.badge}
+                      </span>
+                    </div>
                   )}
+
+                  <div className="space-y-5">
+                    {/* Plan Details */}
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight mb-1">
+                        {plan.name}
+                      </h3>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono">{plan.price}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">{plan.period}</span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                        {plan.description}
+                      </p>
+                    </div>
+
+                    {/* Quota Highlights Box */}
+                    <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800/80 space-y-2 text-xs">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                          <Zap className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" /> Daily Tokens:
+                        </span>
+                        <span className="font-bold text-slate-900 dark:text-white font-mono">{plan.tokens.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                          <Layers className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Page Capacity:
+                        </span>
+                        <span className="font-bold text-slate-900 dark:text-white font-mono">{plan.pages} Pages</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" /> Member Seats:
+                        </span>
+                        <span className="font-bold text-slate-900 dark:text-white font-mono">{plan.members} Seats</span>
+                      </div>
+                    </div>
+
+                    {/* Capabilities List */}
+                    <div className="space-y-2 pt-1">
+                      <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        Included Capabilities:
+                      </span>
+                      {plan.features.map((feat, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <span>{feat}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Plan Action CTA Button */}
+                  <div className="pt-5 mt-5 border-t border-slate-100 dark:border-slate-800/80">
+                    {active ? (
+                      <button
+                        disabled
+                        className="w-full py-2.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-center gap-2 cursor-default"
+                      >
+                        <Check className="w-4 h-4" /> Active Plan
+                      </button>
+                    ) : plan.id === 'starter' ? (
+                      <button
+                        disabled
+                        className="w-full py-2.5 rounded-md bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 text-xs font-semibold flex items-center justify-center cursor-default"
+                      >
+                        Default Starter Tier
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleStripeCheckout(plan)}
+                        disabled={Boolean(loadingPlanId) || !isOwner}
+                        className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg ${
+                          !isOwner
+                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700'
+                            : plan.highlight
+                            ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-600/30 hover:scale-[1.01] active:scale-[0.99] border border-indigo-400/30'
+                            : 'bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white border border-slate-700'
+                        }`}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" /> Preparing Stripe Checkout...
+                          </>
+                        ) : !isOwner ? (
+                          'Owner Permission Required'
+                        ) : (
+                          <>
+                            <ShoppingCart className="w-4 h-4 text-white shrink-0" /> Upgrade {activeWorkspace?.name || 'Workspace'} to {plan.name} ({plan.price})
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Custom Stripe Payment Checkout Modal (Card Payment Only, Apple Pay & Link Removed) */}
+      {/* Custom Stripe Payment Checkout Modal */}
       <PaymentCheckoutModal
         isOpen={checkoutModalOpen}
         onClose={() => setCheckoutModalOpen(false)}
         plan={selectedPlanForCheckout}
         workspaceId={workspaceId}
+        workspaceName={activeWorkspace?.name || ''}
         userEmail={userEmail}
         onPaymentSuccess={handleModalPaymentSuccess}
       />
@@ -417,10 +450,10 @@ export default function PlanPage() {
       {/* Custom Cancel Subscription Confirmation Modal */}
       <ConfirmModal
         isOpen={cancelModalOpen}
-        title="Cancel Active Subscription"
-        message="Are you sure you want to cancel your subscription? Your workspace plan access will remain active until the end of the current billing period."
+        title={`Cancel Subscription for ${activeWorkspace?.name || 'Workspace'}`}
+        message={`Are you sure you want to cancel the subscription for ${activeWorkspace?.name}? Access to your paid plan limits will remain active until ${formatDate(periodEnd) || 'the end of the current billing cycle'}, after which the workspace will automatically revert to the free Starter plan.`}
         confirmText="Cancel Subscription"
-        cancelText="Keep Subscription"
+        cancelText="Keep Active Subscription"
         variant="danger"
         loading={canceling}
         onConfirm={handleCancelSubscription}
@@ -429,3 +462,4 @@ export default function PlanPage() {
     </WorkspaceLayout>
   )
 }
+

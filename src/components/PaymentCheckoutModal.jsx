@@ -91,6 +91,7 @@ export default function PaymentCheckoutModal({
   onClose,
   plan = { id: 'pro', name: 'Pro Plan', priceUSD: 29, tokens: 250000, pages: 100 },
   workspaceId,
+  workspaceName = '',
   userEmail = 'garvvariya03@gmail.com',
   onPaymentSuccess
 }) {
@@ -127,7 +128,7 @@ export default function PaymentCheckoutModal({
   if (!isOpen) return null
 
   // Exchange rate calculation (1 USD = 99.4095 INR matching Stripe reference rate)
-  const usdPrice = plan?.id === 'enterprise' ? 99 : 29
+  const usdPrice = plan?.id === 'enterprise' ? 99 : (plan?.id === 'starter' ? 0 : 29)
   const exchangeRate = 99.4095
   const inrPrice = (usdPrice * exchangeRate).toFixed(2)
 
@@ -245,8 +246,8 @@ export default function PaymentCheckoutModal({
 
               {/* Title & Price Display */}
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
-                  Subscribe to Nexus AI RAG Workspace
+                <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider mb-0.5">
+                  {workspaceName ? `Upgrading: ${workspaceName}` : 'Subscribe to Nexus RAG Workspace'}
                 </p>
                 <h2 className="text-xs sm:text-sm font-bold text-slate-900 mb-1">
                   {plan?.name || 'Pro Plan'}
