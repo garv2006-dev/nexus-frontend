@@ -352,12 +352,12 @@ export default function DocumentsPage() {
           </div>
         )}
 
-        {/* Indexed Documents Table */}
-        <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm dark:shadow-lg">
-          <div className="px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-            <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">Indexed Documents ({docCount})</h3>
+        {/* Indexed Documents Section */}
+        <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm dark:shadow-lg">
+          <div className="px-4 sm:px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Indexed Documents ({docCount})</h3>
             <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-              {pageCount}/{maxPages} Total Pages Used ({availablePages} Available)
+              {pageCount}/{maxPages} Total Pages Used ({availablePages} Space Left)
             </span>
           </div>
 
@@ -370,49 +370,91 @@ export default function DocumentsPage() {
               No documents uploaded yet in this workspace. Upload PDF/DOC files to start vector indexing.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
-                    <th className="py-3 px-5">Document Name</th>
-                    <th className="py-3 px-4">Type</th>
-                    <th className="py-3 px-4">Pages Extracted</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
-                  {documents.map((doc) => (
-                    <tr key={doc.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3 px-5 font-medium text-slate-900 dark:text-white flex items-center gap-2.5">
-                        <FileText className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                        <span className="truncate max-w-xs">{doc.name}</span>
-                      </td>
-                      <td className="py-3 px-4 font-mono text-[11px] text-slate-500 dark:text-slate-400">
-                        {doc.file_type}
-                      </td>
-                      <td className="py-3 px-4 font-semibold text-emerald-600 dark:text-emerald-300 font-mono">
-                        {doc.page_count || 1} {doc.page_count === 1 ? 'page' : 'pages'}
-                      </td>
-                      <td className="py-3 px-4">
+            <>
+              {/* Mobile Card List View (< sm screens) */}
+              <div className="block sm:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                {documents.map((doc) => (
+                  <div key={doc.id} className="p-3.5 space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2 min-w-0 pr-1">
+                        <FileText className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+                        <span className="text-xs font-bold text-slate-900 dark:text-white break-all leading-snug">
+                          {doc.name}
+                        </span>
+                      </div>
+                      {canUpload && (
+                        <button
+                          onClick={() => setDeleteModalDoc(doc)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 min-h-[32px] min-w-[32px] flex items-center justify-center"
+                          title="Delete Document"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100 dark:border-slate-800/60">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-slate-500 uppercase px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
+                          {doc.file_type}
+                        </span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                          {doc.page_count || 1} {doc.page_count === 1 ? 'page' : 'pages'}
+                        </span>
+                      </div>
+                      <div>
                         {getStatusBadge(doc.status)}
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        {canUpload && (
-                          <button
-                            onClick={() => setDeleteModalDoc(doc)}
-                            className="p-1.5 rounded-md text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                            title="Delete Document"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </td>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table View (>= sm screens) */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                      <th className="py-3 px-5">Document Name</th>
+                      <th className="py-3 px-4">Type</th>
+                      <th className="py-3 px-4">Pages Extracted</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
+                    {documents.map((doc) => (
+                      <tr key={doc.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="py-3 px-5 font-medium text-slate-900 dark:text-white flex items-center gap-2.5">
+                          <FileText className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                          <span className="truncate max-w-xs">{doc.name}</span>
+                        </td>
+                        <td className="py-3 px-4 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                          {doc.file_type}
+                        </td>
+                        <td className="py-3 px-4 font-semibold text-emerald-600 dark:text-emerald-300 font-mono">
+                          {doc.page_count || 1} {doc.page_count === 1 ? 'page' : 'pages'}
+                        </td>
+                        <td className="py-3 px-4">
+                          {getStatusBadge(doc.status)}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          {canUpload && (
+                            <button
+                              onClick={() => setDeleteModalDoc(doc)}
+                              className="p-1.5 rounded-md text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                              title="Delete Document"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </div>

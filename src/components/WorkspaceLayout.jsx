@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { NavLink, useParams, Navigate, useNavigate } from 'react-router-dom'
+import { NavLink, useParams, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import {
   MessageSquare,
   FileText,
@@ -20,16 +20,24 @@ import CreateWorkspaceModal from './CreateWorkspaceModal'
 export default function WorkspaceLayout({ children }) {
   const { workspaceId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { activeWorkspace, switchWorkspace, workspaces, loading } = useWorkspace()
-  const [dropdownOpen, setDropdownOpen] = useState(false)
+  
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false)
+  const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false)
   const [createModalOpen, setCreateModalOpen] = useState(false)
-  const dropdownRef = useRef(null)
+  
+  const mobileDropdownRef = useRef(null)
+  const desktopDropdownRef = useRef(null)
 
-  // Close dropdown on click outside
+  // Close dropdowns on click outside
   useEffect(() => {
     function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false)
+      if (mobileDropdownRef.current && !mobileDropdownRef.current.contains(event.target)) {
+        setMobileDropdownOpen(false)
+      }
+      if (desktopDropdownRef.current && !desktopDropdownRef.current.contains(event.target)) {
+        setDesktopDropdownOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -61,6 +69,20 @@ export default function WorkspaceLayout({ children }) {
 
   const isOwnerOrAdmin = currentWs?.user_role === 'owner' || currentWs?.user_role === 'admin'
 
+  const handleSelectWorkspace = (targetWsId) => {
+    switchWorkspace(targetWsId)
+    setMobileDropdownOpen(false)
+    setDesktopDropdownOpen(false)
+    
+    // Preserve current sub-section (e.g. documents, members, usage, plan) if valid
+    const parts = location.pathname.split('/')
+    const currentSubPath = parts[3] || 'chat'
+    const validSubPaths = ['chat', 'documents', 'members', 'usage', 'plan', 'settings', 'profile']
+    const nextSubPath = validSubPaths.includes(currentSubPath) ? currentSubPath : 'chat'
+    
+    navigate(`/workspace/${targetWsId}/${nextSubPath}`)
+  }
+
   const navItems = [
     { label: 'Chat', shortLabel: 'Chat', icon: MessageSquare, path: `/workspace/${workspaceId}/chat` },
     { label: 'Documents', shortLabel: 'Docs', icon: FileText, path: `/workspace/${workspaceId}/documents` },
@@ -71,54 +93,51 @@ export default function WorkspaceLayout({ children }) {
   ]
 
   return (
-    <div className="h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans antialiased overflow-hidden transition-colors">
+    <div className="h-[100dvh] bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans antialiased overflow-hidden transition-colors">
       <Header />
 
       {/* Mobile Workspace Switcher Bar */}
-      <div className="md:hidden bg-white/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 px-3 py-2 flex items-center justify-between z-30 shrink-0">
-        <div className="relative flex-1 mr-2" ref={dropdownRef}>
+      <div className="md:hidden bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 px-3 py-2 flex items-center justify-between z-30 shrink-0">
+        <div className="relative flex-1" ref={mobileDropdownRef}>
           <button
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="w-full px-2.5 py-1.5 rounded-md bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-left transition-all"
+            onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
+            className="w-full px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-left transition-all min-h-[40px]"
           >
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-5 h-5 rounded bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-[10px] shrink-0">
+            <div className="flex items-center gap-2 min-w-0 pr-2">
+              <div className="w-5 h-5 rounded bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-[10px] shrink-0 border border-indigo-200 dark:border-indigo-500/20">
                 <Layers className="w-3 h-3" />
               </div>
               <span className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                 {currentWs?.name || 'Workspace'}
               </span>
             </div>
-            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${mobileDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
 
-          {dropdownOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl py-1.5 z-50">
-              <div className="max-h-48 overflow-y-auto px-1 space-y-1">
+          {mobileDropdownOpen && (
+            <div className="absolute top-full left-0 right-0 mt-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+              <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Switch Workspace</div>
+              <div className="max-h-52 overflow-y-auto px-1 space-y-0.5">
                 {workspaces.map((ws) => (
                   <button
                     key={ws.id}
-                    onClick={() => {
-                      switchWorkspace(ws.id)
-                      setDropdownOpen(false)
-                      navigate(`/workspace/${ws.id}/chat`)
-                    }}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs text-left ${
-                      currentWs?.id === ws.id ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 font-medium' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    onClick={() => handleSelectWorkspace(ws.id)}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs text-left transition-colors ${
+                      currentWs?.id === ws.id ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <span className="truncate">{ws.name}</span>
-                    {currentWs?.id === ws.id && <Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />}
+                    <span className="truncate pr-2">{ws.name}</span>
+                    {currentWs?.id === ws.id && <Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />}
                   </button>
                 ))}
               </div>
               <div className="border-t border-slate-200 dark:border-slate-800 mt-1.5 pt-1.5 px-1">
                 <button
                   onClick={() => {
-                    setDropdownOpen(false)
+                    setMobileDropdownOpen(false)
                     setCreateModalOpen(true)
                   }}
-                  className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-600/10 font-medium"
+                  className="w-full flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-600/10 font-semibold"
                 >
                   <Plus className="w-3.5 h-3.5" /> Create Workspace
                 </button>
@@ -128,14 +147,14 @@ export default function WorkspaceLayout({ children }) {
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Fixed Desktop Navigation Sidebar */}
         <aside className="w-64 h-full bg-slate-100/70 dark:bg-slate-900/60 border-r border-slate-200 dark:border-slate-800/80 p-4 flex flex-col justify-between shrink-0 hidden md:flex overflow-hidden transition-colors">
           <div className="space-y-6 flex-1 flex flex-col min-h-0">
             {/* Interactive Workspace Switcher Header Card */}
-            <div className="relative shrink-0" ref={dropdownRef}>
+            <div className="relative shrink-0" ref={desktopDropdownRef}>
               <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
+                onClick={() => setDesktopDropdownOpen(!desktopDropdownOpen)}
                 className="w-full p-3 rounded-md bg-white dark:bg-slate-950/80 hover:bg-slate-50 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 flex items-center justify-between text-left transition-all group shadow-sm"
               >
                 <div className="flex items-center gap-2.5 min-w-0 pr-2">
@@ -151,11 +170,11 @@ export default function WorkspaceLayout({ children }) {
                     </span>
                   </div>
                 </div>
-                <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${desktopDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {/* Workspace Switcher Dropdown Menu */}
-              {dropdownOpen && (
+              {desktopDropdownOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                   <div className="px-3 py-1.5 text-[10px] font-semibold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
                     Switch Workspace
@@ -166,11 +185,7 @@ export default function WorkspaceLayout({ children }) {
                       return (
                         <button
                           key={ws.id}
-                          onClick={() => {
-                            switchWorkspace(ws.id)
-                            setDropdownOpen(false)
-                            navigate(`/workspace/${ws.id}/chat`)
-                          }}
+                          onClick={() => handleSelectWorkspace(ws.id)}
                           className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs text-left transition-colors ${
                             isActive
                               ? 'bg-indigo-50 dark:bg-indigo-600/15 text-indigo-600 dark:text-indigo-400 font-medium border border-indigo-200 dark:border-indigo-500/20'
@@ -192,7 +207,7 @@ export default function WorkspaceLayout({ children }) {
                   <div className="border-t border-slate-200 dark:border-slate-800 mt-2 pt-2 px-1.5">
                     <button
                       onClick={() => {
-                        setDropdownOpen(false)
+                        setDesktopDropdownOpen(false)
                         setCreateModalOpen(true)
                       }}
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-600/10 font-medium transition-colors"
@@ -241,25 +256,25 @@ export default function WorkspaceLayout({ children }) {
         </aside>
 
         {/* Mobile Navigation Bottom Bar */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-40 flex items-center justify-between px-2 py-1.5 overflow-x-auto">
+        <nav aria-label="Mobile navigation" className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-40 px-1 py-1 flex items-center justify-around shadow-lg pb-[calc(0.25rem+env(safe-area-inset-bottom))]">
           {navItems.map((item) => (
             <NavLink
               key={item.label}
               to={item.path}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] min-w-[50px] shrink-0 transition-colors ${
-                  isActive ? 'text-indigo-600 dark:text-indigo-400 font-semibold bg-slate-100 dark:bg-slate-800/80' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                `flex flex-col items-center justify-center gap-0.5 py-1 px-1.5 rounded-lg text-[10px] flex-1 text-center min-h-[44px] transition-all ${
+                  isActive ? 'text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50/80 dark:bg-indigo-950/60' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`
               }
             >
-              <item.icon className="w-4 h-4" />
-              <span className="truncate">{item.shortLabel}</span>
+              <item.icon className="w-4 h-4 shrink-0" />
+              <span className="truncate leading-tight max-w-[56px]">{item.shortLabel}</span>
             </NavLink>
           ))}
-        </div>
+        </nav>
 
         {/* Main Workspace Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 pb-20 md:pb-8">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-8 pb-16 md:pb-8 min-w-0">
           {children}
         </main>
       </div>

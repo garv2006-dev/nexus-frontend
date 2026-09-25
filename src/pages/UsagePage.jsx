@@ -73,58 +73,58 @@ export default function UsagePage() {
         ) : (
           <>
             {/* Top Stat Cards Grid */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 space-y-2 shadow-sm dark:shadow-md">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 space-y-1.5 shadow-sm dark:shadow-md">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
-                  <span>Input Tokens</span>
-                  <ArrowDownLeft className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span className="font-semibold text-[11px] sm:text-xs">Input Tokens</span>
+                  <ArrowDownLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 </div>
-                <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
+                <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-mono">
                   {(usageData?.input_tokens || 0).toLocaleString()}
                 </div>
-                <span className="text-[10px] text-slate-500 block">Prompt & context chunks</span>
+                <span className="text-[10px] text-slate-500 block truncate">Prompts & context</span>
               </div>
 
-              <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 space-y-2 shadow-sm dark:shadow-md">
+              <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 space-y-1.5 shadow-sm dark:shadow-md">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
-                  <span>Output Tokens</span>
-                  <ArrowUpRight className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <span className="font-semibold text-[11px] sm:text-xs">Output Tokens</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 </div>
-                <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
+                <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-mono">
                   {(usageData?.output_tokens || 0).toLocaleString()}
                 </div>
-                <span className="text-[10px] text-slate-500 block">Gemini generated responses</span>
+                <span className="text-[10px] text-slate-500 block truncate">Gemini responses</span>
               </div>
 
-              <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 space-y-2 shadow-sm dark:shadow-md">
+              <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 space-y-1.5 shadow-sm dark:shadow-md">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
-                  <span>Total Used Today</span>
-                  <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  <span className="font-semibold text-[11px] sm:text-xs">Total Used</span>
+                  <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                 </div>
-                <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
+                <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-mono">
                   {totalUsed.toLocaleString()}
                 </div>
-                <span className="text-[10px] text-slate-500 block">Out of {dailyLimit.toLocaleString()} limit</span>
+                <span className="text-[10px] text-slate-500 block truncate">Of {dailyLimit.toLocaleString()}</span>
               </div>
 
-              <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 space-y-2 shadow-sm dark:shadow-md">
+              <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 space-y-1.5 shadow-sm dark:shadow-md">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
-                  <span>Remaining Budget</span>
-                  <Clock className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                  <span className="font-semibold text-[11px] sm:text-xs">Remaining</span>
+                  <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
                 </div>
-                <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                <div className="text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                   {remaining.toLocaleString()}
                 </div>
-                <span className="text-[10px] text-slate-500 block">Resets daily at midnight</span>
+                <span className="text-[10px] text-slate-500 block truncate">Resets daily</span>
               </div>
             </div>
 
             {/* Daily Token Limit Meter Card */}
-            <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 space-y-3.5 shadow-sm dark:shadow-lg">
+            <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 space-y-3 shadow-sm dark:shadow-lg">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Daily Workspace Token Consumption</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Workspace token budgets reset automatically each day</p>
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Daily Workspace Token Consumption</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Workspace token budgets reset automatically each day</p>
                 </div>
                 <span className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-1 rounded-md border border-indigo-200 dark:border-indigo-500/20 w-fit">
                   {percentage}% Consumed
@@ -149,13 +149,13 @@ export default function UsagePage() {
               )}
             </div>
 
-            {/* Usage by Day Table */}
-            <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm dark:shadow-lg">
-              <div className="px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            {/* Usage by Day Table & Mobile Card View */}
+            <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm dark:shadow-lg">
+              <div className="px-4 sm:px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> Usage History by Day
                 </h3>
-                <span className="text-xs text-slate-500 dark:text-slate-400">Last 14 Days</span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">Last 14 Days</span>
               </div>
 
               {(!usageData?.history || usageData.history.length === 0) ? (
@@ -163,36 +163,55 @@ export default function UsagePage() {
                   No historical usage recorded yet for this workspace.
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
-                        <th className="py-3 px-5">Date</th>
-                        <th className="py-3 px-4">Input Tokens</th>
-                        <th className="py-3 px-4">Output Tokens</th>
-                        <th className="py-3 px-5 text-right">Total Tokens</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
-                      {usageData.history.map((row, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                          <td className="py-3 px-5 font-mono text-slate-900 dark:text-white">
-                            {row.date_str}
-                          </td>
-                          <td className="py-3 px-4 font-mono text-slate-500 dark:text-slate-400">
-                            {(row.input_tokens || 0).toLocaleString()}
-                          </td>
-                          <td className="py-3 px-4 font-mono text-slate-500 dark:text-slate-400">
-                            {(row.output_tokens || 0).toLocaleString()}
-                          </td>
-                          <td className="py-3 px-5 font-mono font-semibold text-indigo-600 dark:text-indigo-300 text-right">
-                            {(row.total_tokens || 0).toLocaleString()}
-                          </td>
+                <>
+                  {/* Mobile View (< sm screens) */}
+                  <div className="block sm:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                    {usageData.history.map((row, idx) => (
+                      <div key={idx} className="p-3.5 space-y-1.5 text-xs">
+                        <div className="flex justify-between items-center font-bold text-slate-900 dark:text-white font-mono">
+                          <span>{row.date_str}</span>
+                          <span className="text-indigo-600 dark:text-indigo-400">{(row.total_tokens || 0).toLocaleString()} tokens</span>
+                        </div>
+                        <div className="flex justify-between text-[11px] text-slate-500 font-mono">
+                          <span>In: {(row.input_tokens || 0).toLocaleString()}</span>
+                          <span>Out: {(row.output_tokens || 0).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Desktop View (>= sm screens) */}
+                  <div className="hidden sm:block overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                          <th className="py-3 px-5">Date</th>
+                          <th className="py-3 px-4">Input Tokens</th>
+                          <th className="py-3 px-4">Output Tokens</th>
+                          <th className="py-3 px-5 text-right">Total Tokens</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
+                        {usageData.history.map((row, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td className="py-3 px-5 font-mono text-slate-900 dark:text-white">
+                              {row.date_str}
+                            </td>
+                            <td className="py-3 px-4 font-mono text-slate-500 dark:text-slate-400">
+                              {(row.input_tokens || 0).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-4 font-mono text-slate-500 dark:text-slate-400">
+                              {(row.output_tokens || 0).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-5 font-mono font-semibold text-indigo-600 dark:text-indigo-300 text-right">
+                              {(row.total_tokens || 0).toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </div>
           </>

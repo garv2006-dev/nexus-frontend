@@ -99,15 +99,25 @@ export function WorkspaceProvider({ children }) {
     }
   }, [isSignedIn, userId, fetchWorkspaces, fetchInvitations])
 
-  const switchWorkspace = (workspaceId) => {
-    const ws = workspaces.find(w => w.id === workspaceId)
-    if (ws) {
-      setActiveWorkspace(ws)
-      if (userId) {
-        localStorage.setItem(`active_workspace_${userId}`, ws.id)
+  const switchWorkspace = useCallback((wsId) => {
+    if (!wsId) return
+    setWorkspaces((currentList) => {
+      const ws = currentList.find(w => w.id === wsId)
+      if (ws) {
+        setActiveWorkspace(ws)
+        if (userId) {
+          localStorage.setItem(`active_workspace_${userId}`, ws.id)
+        }
+      } else {
+        // Fallback if list is loading
+        setActiveWorkspace(prev => (prev?.id === wsId ? prev : { id: wsId, name: 'Workspace' }))
+        if (userId) {
+          localStorage.setItem(`active_workspace_${userId}`, wsId)
+        }
       }
-    }
-  }
+      return currentList
+    })
+  }, [userId])
 
   const handleCreateWorkspace = async (name) => {
     const token = await getToken()

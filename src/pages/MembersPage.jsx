@@ -288,37 +288,37 @@ export default function MembersPage() {
                 return (
                   <div
                     key={m.id}
-                    className="p-3.5 sm:px-5 flex items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                    className="p-3.5 sm:px-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
                   >
-                    <div className="flex items-center gap-3 truncate">
+                    <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
                       {avatarSrc ? (
                         <img
                           src={avatarSrc}
                           alt={memberFullName}
-                          className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700 shrink-0"
+                          className="w-9 h-9 sm:w-8 sm:h-8 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700 shrink-0"
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                        <div className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
                           {initialLetter}
                         </div>
                       )}
-                      <div className="truncate">
-                        <div className="text-xs font-semibold text-slate-900 dark:text-white flex items-center gap-2 truncate">
-                          <span>{memberFullName}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+                          <span className="truncate max-w-[140px] sm:max-w-none">{memberFullName}</span>
                           {renderRoleBadge(m.role)}
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{m.email}</div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">{m.email}</div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                      <span className="text-[10px] text-slate-500 hidden sm:inline-block">
+                    <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+                      <span className="text-[10px] text-slate-500">
                         Joined {new Date(m.joined_at).toLocaleDateString()}
                       </span>
                       {isOwner && !isMemberOwner && (
                         <button
                           onClick={() => setRemoveModalMember(m)}
-                          className="p-1.5 rounded-md text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 min-h-[36px] min-w-[36px] flex items-center justify-center"
                           title="Remove Member"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -333,13 +333,13 @@ export default function MembersPage() {
         </div>
 
         {/* Pending Workspace Invitations Section */}
-        <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm dark:shadow-lg">
-          <div className="px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm dark:shadow-lg">
+          <div className="px-4 sm:px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-              <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">Pending Invitations Sent</h3>
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Pending Invitations Sent</h3>
             </div>
-            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">{pendingInvitations.length} Pending</span>
+            <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold">{pendingInvitations.length} Pending</span>
           </div>
 
           {loading ? (
@@ -363,35 +363,32 @@ export default function MembersPage() {
                 return (
                   <div
                     key={inv.id}
-                    className="p-3.5 sm:px-5 flex items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
+                    className="p-3.5 sm:px-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
                   >
-                    <div className="flex items-center gap-3 truncate">
-                      <div className="w-8 h-8 rounded-md bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 flex items-center justify-center shrink-0">
+                    <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
+                      <div className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 flex items-center justify-center shrink-0">
                         <Mail className="w-4 h-4" />
                       </div>
-                      <div className="truncate">
-                        <div className="text-xs font-semibold text-slate-900 dark:text-white flex items-center gap-2 truncate">
-                          <span>{inv.email}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+                          <span className="truncate max-w-[140px] sm:max-w-none">{inv.email}</span>
                           {renderRoleBadge(inv.role)}
-                          <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 text-[10px] font-medium">
-                            Pending
-                          </span>
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
                           Invited by {inviterFullName}
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 shrink-0">
-                      <span className="text-[10px] text-slate-500 hidden sm:inline-block">
+                    <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+                      <span className="text-[10px] text-slate-500">
                         Sent {new Date(inv.created_at).toLocaleDateString()}
                       </span>
                       {isOwner && (
                         <button
                           onClick={() => handleRevokeInvitation(inv.id)}
                           disabled={revokingId === inv.id}
-                          className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-500/20 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 text-xs font-medium transition-colors"
+                          className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-500/20 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 text-xs font-semibold transition-colors min-h-[36px]"
                           title="Revoke Invitation"
                         >
                           {revokingId === inv.id ? 'Revoking...' : 'Revoke'}

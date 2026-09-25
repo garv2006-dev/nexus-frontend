@@ -87,22 +87,22 @@ export default function InvitationsPage() {
               return (
                 <div
                   key={inv.id}
-                  className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm dark:shadow-lg"
+                  className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm dark:shadow-lg"
                 >
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-md bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-500/30 font-bold shrink-0">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-500/30 font-bold shrink-0">
                       <Layers className="w-5 h-5" />
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
                           {inv.workspace_name}
                         </h3>
-                        <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30 text-[10px] font-semibold uppercase tracking-wider">
+                        <span className="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30 text-[10px] font-bold uppercase tracking-wider">
                           Role: {inv.role || 'member'}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                         Invited by <span className="text-slate-800 dark:text-slate-200 font-medium">{inviterDisplayName}</span>
                       </p>
                       <span className="text-[10px] text-slate-500 block mt-0.5">
@@ -111,25 +111,25 @@ export default function InvitationsPage() {
                     </div>
                   </div>
 
-                <div className="flex items-center gap-2.5 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
-                  <button
-                    onClick={() => handleReject(inv.id)}
-                    disabled={actioningId === inv.id}
-                    className="flex-1 sm:flex-initial px-3.5 py-2 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium transition-colors"
-                  >
-                    Reject
-                  </button>
-                  <button
-                    onClick={() => handleAccept(inv.id)}
-                    disabled={actioningId === inv.id}
-                    className="flex-1 sm:flex-initial px-3.5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <Check className="w-4 h-4" /> Accept Invitation
-                  </button>
+                  <div className="flex items-center gap-2.5 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+                    <button
+                      onClick={() => handleReject(inv.id)}
+                      disabled={actioningId === inv.id}
+                      className="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors min-h-[40px]"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      onClick={() => handleAccept(inv.id)}
+                      disabled={actioningId === inv.id}
+                      className="flex-1 sm:flex-initial px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-1.5 min-h-[40px]"
+                    >
+                      <Check className="w-4 h-4" /> Accept Invitation
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
           </div>
         )}
       </main>

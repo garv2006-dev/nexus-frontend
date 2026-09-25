@@ -219,14 +219,14 @@ export default function WorkspaceSettingsPage() {
         )}
 
         {/* Active Subscription Summary Banner */}
-        <div className="p-5 sm:p-6 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl space-y-4">
+        <div className="p-4 sm:p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
             <div>
               <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 ACTIVE SUBSCRIPTION FOR: <span className="text-slate-900 dark:text-white font-extrabold">{activeWorkspace?.name}</span>
               </span>
-              <div className="flex items-center gap-3 mt-1">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+              <div className="flex items-center gap-2.5 mt-1 flex-wrap">
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                   {paymentDetails?.plan_name || `${planName} Plan`}
                 </h2>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${(paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'active'
@@ -240,11 +240,11 @@ export default function WorkspaceSettingsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 self-start sm:self-auto">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={() => navigate(`/workspace/${workspaceId}/plan`)}
-                className="px-3.5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all inline-flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all inline-flex items-center justify-center gap-1.5 flex-1 sm:flex-initial min-h-[38px]"
               >
                 <Sparkles className="w-4 h-4" /> Manage Plan & Billing <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -254,7 +254,7 @@ export default function WorkspaceSettingsPage() {
                   type="button"
                   onClick={() => setCancelModalOpen(true)}
                   disabled={canceling}
-                  className="px-3.5 py-2 rounded-md bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all inline-flex items-center gap-2"
+                  className="px-3.5 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all inline-flex items-center justify-center gap-2 min-h-[38px]"
                 >
                   {canceling ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
                   Cancel Subscription
@@ -263,52 +263,51 @@ export default function WorkspaceSettingsPage() {
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
-              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5 text-[11px]">
-                <Calendar className="w-3.5 h-3.5 text-indigo-500" /> Purchased / Start Date:
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div className="p-3 sm:p-3.5 rounded-lg bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
+              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5 text-[10px] sm:text-[11px]">
+                <Calendar className="w-3.5 h-3.5 text-indigo-500 shrink-0" /> Start Date:
               </span>
-              <span className="font-mono font-bold text-slate-900 dark:text-white block">
+              <span className="font-mono font-bold text-slate-900 dark:text-white block text-xs truncate">
                 {formatDate(paymentDetails?.purchased_at) ||
                  formatDate(paymentHistory.find(p => p.payment_status === 'succeeded')?.completed_at) ||
                  formatDate(paymentHistory.find(p => p.payment_status === 'succeeded')?.created_at) ||
                  formatDate(activeWorkspace?.created_at) ||
-                 'Free Starter Tier'}
+                 'Free Tier'}
               </span>
             </div>
 
-            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
-              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5 text-[11px]">
-                <Clock className="w-3.5 h-3.5 text-amber-500" />
-                {(paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'canceling' ? 'Access Expiration Date:' : 'Renewal / Expiration Date:'}
+            <div className="p-3 sm:p-3.5 rounded-lg bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
+              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5 text-[10px] sm:text-[11px]">
+                <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" /> Renewal Date:
               </span>
-              <span className={`font-mono font-bold block ${(paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'canceling' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white'}`}>
+              <span className={`font-mono font-bold block text-xs truncate ${(paymentDetails?.subscription_status || activeWorkspace?.subscription_status) === 'canceling' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white'}`}>
                 {planType === 'starter'
-                  ? 'No Expiration (Free)'
-                  : formatDate(paymentDetails?.current_period_end || activeWorkspace?.current_period_end) || '30 Days from Checkout'}
+                  ? 'No Expiration'
+                  : formatDate(paymentDetails?.current_period_end || activeWorkspace?.current_period_end) || '30 Days'}
               </span>
             </div>
 
-            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
-              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5 text-[11px]">
-                <Zap className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" /> Daily Token Budget:
+            <div className="p-3 sm:p-3.5 rounded-lg bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
+              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5 text-[10px] sm:text-[11px]">
+                <Zap className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" /> Daily Tokens:
               </span>
-              <span className="font-mono font-bold text-slate-900 dark:text-white block font-mono">{(paymentDetails?.daily_token_limit || dailyTokenLimit).toLocaleString()}</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white block text-xs font-mono">{(paymentDetails?.daily_token_limit || dailyTokenLimit).toLocaleString()}</span>
             </div>
 
-            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
-              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5 text-[11px]">
-                <Layers className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Page Capacity:
+            <div className="p-3 sm:p-3.5 rounded-lg bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
+              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5 text-[10px] sm:text-[11px]">
+                <Layers className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" /> Page Limit:
               </span>
-              <span className="font-mono font-bold text-slate-900 dark:text-white block font-mono">{paymentDetails?.max_pages || maxPages} Pages</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white block text-xs font-mono">{paymentDetails?.max_pages || maxPages} Pages</span>
             </div>
           </div>
         </div>
 
         {/* General Information Form */}
         <form onSubmit={handleSaveSettings} className="space-y-4">
-          <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 space-y-3.5 shadow-sm dark:shadow-lg">
-            <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">General Information</h3>
+          <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-5 space-y-3 shadow-sm dark:shadow-lg">
+            <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">General Information</h3>
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 Workspace Name
@@ -318,7 +317,7 @@ export default function WorkspaceSettingsPage() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-md bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs placeholder-slate-400 focus:outline-none focus:border-indigo-500 font-medium transition-colors"
               />
             </div>
           </div>
@@ -327,7 +326,7 @@ export default function WorkspaceSettingsPage() {
             <button
               type="submit"
               disabled={saving || !name.trim()}
-              className="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold shadow-md shadow-indigo-600/20 transition-all flex items-center gap-2"
+              className="px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold shadow-md shadow-indigo-600/20 transition-all flex items-center gap-2 min-h-[40px]"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Save Workspace Name
@@ -336,18 +335,18 @@ export default function WorkspaceSettingsPage() {
         </form>
 
         {/* Payment & Transaction History Table with Pagination */}
-        <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm dark:shadow-xl space-y-4">
+        <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm dark:shadow-xl space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <CreditCard className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> Payment & Transaction History
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                 Past subscription payments and invoice receipts logged for {activeWorkspace?.name || 'this workspace'}.
               </p>
             </div>
             {paymentHistory.length > 0 && (
-              <span className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-bold self-start sm:self-auto border border-slate-200 dark:border-slate-700">
+              <span className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold self-start sm:self-auto border border-slate-200 dark:border-slate-700">
                 {paymentHistory.length} Total {paymentHistory.length === 1 ? 'Transaction' : 'Transactions'}
               </span>
             )}
@@ -355,7 +354,30 @@ export default function WorkspaceSettingsPage() {
 
           {paymentHistory.length > 0 ? (
             <div className="space-y-4">
-              <div className="overflow-x-auto">
+              {/* Mobile Card List View (< sm screens) */}
+              <div className="block sm:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                {currentTransactions.map((tx) => (
+                  <div key={tx.id} className="py-3 space-y-1.5 text-xs">
+                    <div className="flex justify-between items-center font-bold text-slate-900 dark:text-white">
+                      <span>{(tx.plan_id ? tx.plan_id.charAt(0).toUpperCase() + tx.plan_id.slice(1) : 'Pro')} Plan</span>
+                      <span className="font-mono text-emerald-600 dark:text-emerald-400">${((tx.amount || 0) / 100).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[11px] text-slate-500 font-mono">
+                      <span>{formatDate(tx.completed_at || tx.created_at)}</span>
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                        tx.payment_status === 'succeeded'
+                          ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30'
+                          : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30'
+                      }`}>
+                        {tx.payment_status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table View (>= sm screens) */}
+              <div className="hidden sm:block overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase text-[10px] tracking-wider bg-slate-50/50 dark:bg-slate-950/40">
@@ -401,7 +423,7 @@ export default function WorkspaceSettingsPage() {
               {/* Clean Pagination Controls Bar */}
               {totalPages > 1 && (
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs">
-                  <div className="text-slate-500 dark:text-slate-400 text-[11px]">
+                  <div className="text-slate-500 dark:text-slate-400 text-[11px] text-center sm:text-left">
                     Showing <span className="font-semibold text-slate-900 dark:text-white">{startIndex + 1}</span> to{' '}
                     <span className="font-semibold text-slate-900 dark:text-white">
                       {Math.min(startIndex + ITEMS_PER_PAGE, paymentHistory.length)}
@@ -409,12 +431,12 @@ export default function WorkspaceSettingsPage() {
                     of <span className="font-semibold text-slate-900 dark:text-white">{paymentHistory.length}</span> transactions
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap justify-center">
                     <button
                       type="button"
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
-                      className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 text-slate-700 dark:text-slate-300 transition-all text-xs font-semibold flex items-center gap-1 border border-slate-200 dark:border-slate-700"
+                      className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 text-slate-700 dark:text-slate-300 transition-all text-xs font-semibold flex items-center gap-1 border border-slate-200 dark:border-slate-700 min-h-[32px]"
                     >
                       <ChevronLeft className="w-3.5 h-3.5" /> Previous
                     </button>
@@ -440,7 +462,7 @@ export default function WorkspaceSettingsPage() {
                       type="button"
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
-                      className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 text-slate-700 dark:text-slate-300 transition-all text-xs font-semibold flex items-center gap-1 border border-slate-200 dark:border-slate-700"
+                      className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 text-slate-700 dark:text-slate-300 transition-all text-xs font-semibold flex items-center gap-1 border border-slate-200 dark:border-slate-700 min-h-[32px]"
                     >
                       Next <ChevronRight className="w-3.5 h-3.5" />
                     </button>

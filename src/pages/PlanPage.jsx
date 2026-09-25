@@ -388,18 +388,18 @@ export default function PlanPage() {
                   </div>
 
                   {/* Plan Action CTA Button */}
-                  <div className="pt-5 mt-5 border-t border-slate-100 dark:border-slate-800/80">
+                  <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800/80">
                     {active ? (
                       <button
                         disabled
-                        className="w-full py-2.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-center gap-2 cursor-default"
+                        className="w-full py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-center gap-2 cursor-default min-h-[44px]"
                       >
                         <Check className="w-4 h-4" /> Active Plan
                       </button>
                     ) : plan.id === 'starter' ? (
                       <button
                         disabled
-                        className="w-full py-2.5 rounded-md bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 text-xs font-semibold flex items-center justify-center cursor-default"
+                        className="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 text-xs font-semibold flex items-center justify-center cursor-default min-h-[44px]"
                       >
                         Default Starter Tier
                       </button>
@@ -407,7 +407,7 @@ export default function PlanPage() {
                       <button
                         onClick={() => handleStripeCheckout(plan)}
                         disabled={Boolean(loadingPlanId) || !isOwner}
-                        className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg ${
+                        className={`w-full py-3 px-3 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg min-h-[44px] ${
                           !isOwner
                             ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700'
                             : plan.highlight
@@ -417,13 +417,13 @@ export default function PlanPage() {
                       >
                         {isLoading ? (
                           <>
-                            <Loader2 className="w-4 h-4 animate-spin" /> Preparing Stripe Checkout...
+                            <Loader2 className="w-4 h-4 animate-spin" /> Checkout...
                           </>
                         ) : !isOwner ? (
                           'Owner Permission Required'
                         ) : (
                           <>
-                            <ShoppingCart className="w-4 h-4 text-white shrink-0" /> Upgrade {activeWorkspace?.name || 'Workspace'} to {plan.name} ({plan.price})
+                            <ShoppingCart className="w-4 h-4 text-white shrink-0" /> Upgrade to {plan.name} ({plan.price})
                           </>
                         )}
                       </button>

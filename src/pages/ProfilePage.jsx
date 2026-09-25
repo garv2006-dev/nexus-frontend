@@ -195,9 +195,9 @@ export function ProfileContent() {
       </div>
 
       {/* Theme Preference Selection Section */}
-      <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 space-y-4 shadow-sm dark:shadow-lg">
+      <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 space-y-4 shadow-sm dark:shadow-lg">
         <div>
-          <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+          <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Palette className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> Theme Preference
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -205,47 +205,47 @@ export function ProfileContent() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1">
           <button
             type="button"
             onClick={() => setTheme('light')}
-            className={`p-4 rounded-lg border text-left transition-all flex flex-col justify-between gap-3 ${
+            className={`p-3.5 sm:p-4 rounded-xl border text-left transition-all flex items-center justify-between gap-3 min-h-[52px] ${
               theme === 'light'
                 ? 'bg-indigo-50/70 border-indigo-500 ring-2 ring-indigo-500/20 shadow-md'
                 : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <div className="w-8 h-8 rounded-md bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold shrink-0">
                 <Sun className="w-4 h-4" />
               </div>
-              {theme === 'light' && <Check className="w-4 h-4 text-indigo-600" />}
+              <div>
+                <div className="text-xs font-bold text-slate-900 dark:text-white">Light Mode</div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400">Clean light appearance</div>
+              </div>
             </div>
-            <div>
-              <div className="text-xs font-semibold text-slate-900 dark:text-white">Light Mode</div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400">Clean, crisp light appearance</div>
-            </div>
+            {theme === 'light' && <Check className="w-4 h-4 text-indigo-600 shrink-0" />}
           </button>
 
           <button
             type="button"
             onClick={() => setTheme('dark')}
-            className={`p-4 rounded-lg border text-left transition-all flex flex-col justify-between gap-3 ${
+            className={`p-3.5 sm:p-4 rounded-xl border text-left transition-all flex items-center justify-between gap-3 min-h-[52px] ${
               theme === 'dark'
                 ? 'bg-indigo-950/40 border-indigo-500 ring-2 ring-indigo-500/20 shadow-md'
                 : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <div className="w-8 h-8 rounded-md bg-indigo-950 text-indigo-400 flex items-center justify-center font-bold">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-indigo-950 text-indigo-400 flex items-center justify-center font-bold shrink-0">
                 <Moon className="w-4 h-4" />
               </div>
-              {theme === 'dark' && <Check className="w-4 h-4 text-indigo-400" />}
+              <div>
+                <div className="text-xs font-bold text-slate-900 dark:text-white">Dark Mode</div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400">Sleek dark theme</div>
+              </div>
             </div>
-            <div>
-              <div className="text-xs font-semibold text-slate-900 dark:text-white">Dark Mode</div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400">Sleek, high-contrast dark theme</div>
-            </div>
+            {theme === 'dark' && <Check className="w-4 h-4 text-indigo-400 shrink-0" />}
           </button>
         </div>
       </div>
